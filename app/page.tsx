@@ -7,6 +7,7 @@ import {
   TerminalInput,
   TerminalLayout,
 } from "@/components/terminal";
+import { VisualizationTabs } from "@/components/VisualizationTabs";
 import type { UserStats } from "@/lib/github";
 import { useLogStore } from "@/lib/log-store";
 import { useSession } from "@/lib/auth-client";
@@ -41,7 +42,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [searchedUsername, setSearchedUsername] = useState<string | null>(null);
   const [showSearchInput, setShowSearchInput] = useState(true);
   const hasAutoSearched = useRef(false);
 
@@ -55,7 +55,6 @@ export default function Home() {
       setHasSearched(true);
       setLoading(true);
       setIsAuthenticated(false);
-      setSearchedUsername(username);
 
       startTransition(async () => {
         const log1 = addLog(`Initializing connection to GitHub API...`);
@@ -97,8 +96,10 @@ export default function Home() {
           await new Promise((r) => setTimeout(r, 200));
           updateLog(log5, "done");
 
-          const log6 = addLog(`Computing insights and metrics...`);
-          await new Promise((r) => setTimeout(r, 200));
+          const log6 = addLog(
+            `Computing insights and generating visualizations...`
+          );
+          await new Promise((r) => setTimeout(r, 300));
           updateLog(log6, "done");
 
           const log7 = addLog(`Compilation complete. Rendering output...`);
@@ -125,7 +126,6 @@ export default function Home() {
     if (session?.user && !hasAutoSearched.current && !isSessionLoading) {
       hasAutoSearched.current = true;
       setShowSearchInput(false);
-      // use session.user.name as username (GitHub username)
       const username = session.user.name;
       if (username) {
         handleSearch(username);
@@ -147,19 +147,17 @@ export default function Home() {
     setError(null);
     setHasSearched(false);
     clearLogs();
-    setSearchedUsername(null);
   };
 
   return (
     <TerminalLayout>
-      {/* header with auth buttons */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
         <div>
           <pre className="ascii-art text-[#00ff00] glow-text overflow-x-auto">
             {ASCII_HEADER}
           </pre>
           <div className="mt-4 text-[#00ff00]/60 text-sm flex flex-wrap items-center gap-2">
-            <span className="text-[#00ff00]/40">[v2025.3.0]</span>
+            <span className="text-[#00ff00]/40">[v2025.4.0]</span>
             <span>•</span>
             <span>Your Year in Code</span>
             <span>•</span>
@@ -192,7 +190,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* search input - show when not logged in OR when clicking "search another" */}
       {showSearchInput && (
         <div className="mb-6 py-4 px-4 bg-[#111] rounded border border-[#333]">
           <TerminalInput
@@ -215,17 +212,30 @@ export default function Home() {
             </div>
           )}
 
-          {/* Insights Panel */}
           {stats && (
             <InsightsPanel
               insights={stats.insights}
               username={stats.user.login}
+              languageCount={stats.languages.length}
             />
           )}
 
-          <StatsOutput stats={stats} error={error} />
+          {stats && <VisualizationTabs stats={stats} />}
 
-          {/* Search another user button */}
+          <div className="mt-6">
+            <details className="group">
+              <summary className="cursor-pointer text-[#00ff00]/50 text-xs hover:text-[#00ff00]/70 transition-colors">
+                <span className="group-open:hidden">▶ Show raw JSON data</span>
+                <span className="hidden group-open:inline">
+                  ▼ Hide raw JSON data
+                </span>
+              </summary>
+              <div className="mt-2">
+                <StatsOutput stats={stats} error={error} />
+              </div>
+            </details>
+          </div>
+
           {stats && !showSearchInput && (
             <div className="mt-6 flex justify-center">
               <button

@@ -17,6 +17,8 @@ import {
   getPublicStats,
   type StatsResult,
 } from "./actions";
+import { joinLeaderboard } from "./leaderboard/actions";
+import Link from "next/link";
 
 // ASCII header
 const ASCII_HEADER = `
@@ -43,6 +45,8 @@ export default function Home() {
   const [hasSearched, setHasSearched] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showSearchInput, setShowSearchInput] = useState(true);
+  const [joinedLeaderboard, setJoinedLeaderboard] = useState(false);
+  const [joiningLeaderboard, setJoiningLeaderboard] = useState(false);
   const hasAutoSearched = useRef(false);
 
   const { addLog, updateLog, clearLogs, setLoading } = useLogStore();
@@ -157,7 +161,7 @@ export default function Home() {
             {ASCII_HEADER}
           </pre>
           <div className="mt-4 text-[#00ff00]/60 text-sm flex flex-wrap items-center gap-2">
-            <span className="text-[#00ff00]/40">[v2025.4.0]</span>
+            <span className="text-[#00ff00]/40">[v2025.5.0]</span>
             <span>•</span>
             <span>Your Year in Code</span>
             <span>•</span>
@@ -237,7 +241,7 @@ export default function Home() {
           </div>
 
           {stats && !showSearchInput && (
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex flex-wrap justify-center gap-4">
               <button
                 onClick={handleSearchAnother}
                 className="px-4 py-2 text-sm text-[#00ff00] border border-[#00ff00]/30 rounded 
@@ -246,6 +250,40 @@ export default function Home() {
                 <span>🔍</span>
                 <span>Search for another user</span>
               </button>
+
+              {session?.user && !joinedLeaderboard && (
+                <button
+                  onClick={async () => {
+                    if (!stats) return;
+                    setJoiningLeaderboard(true);
+                    const result = await joinLeaderboard(stats);
+                    if (result.success) {
+                      setJoinedLeaderboard(true);
+                    }
+                    setJoiningLeaderboard(false);
+                  }}
+                  disabled={joiningLeaderboard}
+                  className="px-4 py-2 text-sm text-[#ffd700] border border-[#ffd700]/30 rounded 
+                             hover:bg-[#ffd700]/10 transition-colors cursor-pointer flex items-center gap-2
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>🏆</span>
+                  <span>
+                    {joiningLeaderboard ? "Joining..." : "Join Leaderboard"}
+                  </span>
+                </button>
+              )}
+
+              {joinedLeaderboard && (
+                <Link
+                  href="/leaderboard"
+                  className="px-4 py-2 text-sm text-[#00ff00] bg-[#00ff00]/10 border border-[#00ff00]/30 rounded 
+                             hover:bg-[#00ff00]/20 transition-colors flex items-center gap-2"
+                >
+                  <span>✅</span>
+                  <span>View Leaderboard</span>
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -263,6 +301,20 @@ export default function Home() {
           </p>
         </div>
       )}
+      <div className="mt-12 pt-6 border-t border-[#00ff00]/20 flex flex-wrap justify-center gap-6 text-sm">
+        <Link
+          href="/leaderboard"
+          className="text-[#00ff00]/50 hover:text-[#00ff00] transition-colors"
+        >
+          🏆 Leaderboard
+        </Link>
+        <Link
+          href="/how-it-works"
+          className="text-[#00ff00]/50 hover:text-[#00ff00] transition-colors"
+        >
+          📖 How It Works
+        </Link>
+      </div>
     </TerminalLayout>
   );
 }

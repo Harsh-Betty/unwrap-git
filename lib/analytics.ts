@@ -1,5 +1,3 @@
-import type { UserStats } from "./github";
-
 export interface Insights {
   mostProductiveDay: {
     day: string;
@@ -12,9 +10,24 @@ export interface Insights {
   averagePerDay: number;
   busiestMonth: {
     month: string;
+    monthIndex: number;
     count: number;
   };
-  weekendWarrior: number; // percentage of contributions on weekends
+  weekendWarrior: number;
+  codeDedication: number;
+  peakDay: {
+    date: string;
+    count: number;
+  };
+  monthlyData: {
+    month: string;
+    monthIndex: number;
+    count: number;
+  }[];
+  weeklyData: {
+    week: number;
+    count: number;
+  }[];
 }
 
 const DAY_NAMES = [
@@ -51,19 +64,22 @@ export function computeInsights(
       currentStreak: 0,
       totalContributionDays: 0,
       averagePerDay: 0,
-      busiestMonth: { month: "N/A", count: 0 },
+      busiestMonth: { month: "N/A", monthIndex: 0, count: 0 },
       weekendWarrior: 0,
+      codeDedication: 0,
+      peakDay: { date: "", count: 0 },
+      monthlyData: [],
+      weeklyData: [],
     };
   }
 
-  // sort calendar by date
   const sorted = [...calendar].sort((a, b) => a.date.localeCompare(b.date));
 
-  // most productive day of week
   const dayTotals = new Array(7).fill(0);
   let totalContributions = 0;
   let totalContributionDays = 0;
   let weekendContributions = 0;
+  let peakDay = { date: "", count: 0 };
 
   for (const day of sorted) {
     dayTotals[day.weekday] += day.count;
@@ -71,6 +87,9 @@ export function computeInsights(
     if (day.count > 0) totalContributionDays++;
     if (day.weekday === 0 || day.weekday === 6) {
       weekendContributions += day.count;
+    }
+    if (day.count > peakDay.count) {
+      peakDay = { date: day.date, count: day.count };
     }
   }
 
@@ -81,31 +100,49 @@ export function computeInsights(
     count: dayTotals[maxDayIndex],
   };
 
-  // busiest month
   const monthTotals = new Map<string, number>();
   for (const day of sorted) {
-    const month = day.date.slice(0, 7); // YYYY-MM
+    const month = day.date.slice(0, 7);
     monthTotals.set(month, (monthTotals.get(month) || 0) + day.count);
   }
 
-  let busiestMonth = { month: "N/A", count: 0 };
+  let busiestMonth = { month: "N/A", monthIndex: 0, count: 0 };
+  const monthlyData: { month: string; monthIndex: number; count: number }[] =
+    [];
+
   for (const [month, count] of monthTotals) {
+    const monthIndex = parseInt(month.slice(5, 7)) - 1;
+    const monthName = MONTH_NAMES[monthIndex];
+    monthlyData.push({ month: monthName, monthIndex, count });
     if (count > busiestMonth.count) {
-      const monthIndex = parseInt(month.slice(5, 7)) - 1;
-      busiestMonth = {
-        month: MONTH_NAMES[monthIndex],
-        count,
-      };
+      busiestMonth = { month: monthName, monthIndex, count };
     }
   }
+  monthlyData.sort((a, b) => a.monthIndex - b.monthIndex);
 
-  // streaks - longest and current
+  const weeklyData: { week: number; count: number }[] = [];
+  let weekCount = 0;
+  let currentWeek = 0;
+
+  for (let i = 0; i < sorted.length; i++) {
+    const weekNum = Math.floor(i / 7);
+    if (weekNum !== currentWeek) {
+      weeklyData.push({ week: currentWeek + 1, count: weekCount });
+      weekCount = 0;
+      currentWeek = weekNum;
+    }
+    weekCount += sorted[i].count;
+  }
+  if (weekCount > 0) {
+    weeklyData.push({ week: currentWeek + 1, count: weekCount });
+  }
+
   let longestStreak = 0;
   let currentStreak = 0;
   let tempStreak = 0;
 
-  for (let i = 0; i < sorted.length; i++) {
-    if (sorted[i].count > 0) {
+  for (const day of sorted) {
+    if (day.count > 0) {
       tempStreak++;
       longestStreak = Math.max(longestStreak, tempStreak);
     } else {
@@ -113,7 +150,6 @@ export function computeInsights(
     }
   }
 
-  // current streak (from most recent day backwards)
   for (let i = sorted.length - 1; i >= 0; i--) {
     if (sorted[i].count > 0) {
       currentStreak++;
@@ -123,13 +159,18 @@ export function computeInsights(
   }
 
   const averagePerDay =
-    totalContributionDays > 0
+    sorted.length > 0
       ? Math.round((totalContributions / sorted.length) * 10) / 10
       : 0;
 
   const weekendWarrior =
     totalContributions > 0
       ? Math.round((weekendContributions / totalContributions) * 100)
+      : 0;
+
+  const codeDedication =
+    sorted.length > 0
+      ? Math.round((totalContributionDays / sorted.length) * 100)
       : 0;
 
   return {
@@ -140,36 +181,15 @@ export function computeInsights(
     averagePerDay,
     busiestMonth,
     weekendWarrior,
+    codeDedication,
+    peakDay,
+    monthlyData,
+    weeklyData,
   };
 }
 
-export function formatInsightMessage(
-  insights: Insights,
-  stats: UserStats
-): string[] {
-  const messages: string[] = [];
-
-  messages.push(
-    `🔥 ${insights.currentStreak} day streak (longest: ${insights.longestStreak} days)`
-  );
-  messages.push(
-    `📅 Most productive on ${insights.mostProductiveDay.day}s (${insights.mostProductiveDay.count} contributions)`
-  );
-  messages.push(
-    `📈 ${insights.busiestMonth.month} was your busiest month (${insights.busiestMonth.count} contributions)`
-  );
-
-  if (insights.weekendWarrior >= 30) {
-    messages.push(
-      `🏠 Weekend Warrior: ${insights.weekendWarrior}% of contributions on weekends!`
-    );
-  }
-
-  if (stats.languages[0]) {
-    messages.push(
-      `💻 Top language: ${stats.languages[0].name} (${stats.languages[0].commitCount} commits)`
-    );
-  }
-
-  return messages;
+export function formatPeakDate(dateStr: string): string {
+  if (!dateStr) return "N/A";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

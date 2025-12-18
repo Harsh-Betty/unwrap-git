@@ -256,3 +256,140 @@ export async function fetchUserStats(username: string): Promise<UserStats> {
     topRepos,
   };
 }
+
+// fetch stats with user's access token (includes private repos)
+export async function fetchUserStatsWithToken(
+  username: string,
+  accessToken: string
+): Promise<UserStats> {
+  const userOctokit = new Octokit({
+    auth: accessToken,
+    retry: { enabled: true },
+  });
+
+  const now = new Date();
+  const startOf2025 = new Date("2025-01-01T00:00:00Z");
+  const endDate =
+    now > new Date("2025-12-31T23:59:59Z")
+      ? new Date("2025-12-31T23:59:59Z")
+      : now;
+
+  const response = await userOctokit.graphql<{
+    user: {
+      login: string;
+      name: string | null;
+      avatarUrl: string;
+      bio: string | null;
+      location: string | null;
+      company: string | null;
+      twitterUsername: string | null;
+      followers: { totalCount: number };
+      following: { totalCount: number };
+      contributionsCollection: {
+        totalCommitContributions: number;
+        totalIssueContributions: number;
+        totalPullRequestContributions: number;
+        totalPullRequestReviewContributions: number;
+        totalRepositoryContributions: number;
+        restrictedContributionsCount: number;
+        contributionCalendar: {
+          totalContributions: number;
+          weeks: {
+            contributionDays: {
+              date: string;
+              contributionCount: number;
+              weekday: number;
+            }[];
+          }[];
+        };
+        commitContributionsByRepository: {
+          repository: {
+            name: string;
+            nameWithOwner: string;
+            isPrivate: boolean;
+            primaryLanguage: { name: string; color: string } | null;
+          };
+          contributions: { totalCount: number };
+        }[];
+      };
+      repositories: {
+        nodes: {
+          name: string;
+          primaryLanguage: { name: string; color: string } | null;
+          stargazerCount: number;
+        }[];
+      };
+    };
+  }>(CONTRIBUTIONS_QUERY, {
+    username,
+    from: startOf2025.toISOString(),
+    to: endDate.toISOString(),
+  });
+
+  const { user } = response;
+  const { contributionsCollection } = user;
+
+  const calendar = contributionsCollection.contributionCalendar.weeks.flatMap(
+    (week) =>
+      week.contributionDays.map((day) => ({
+        date: day.date,
+        count: day.contributionCount,
+        weekday: day.weekday,
+      }))
+  );
+
+  const languageMap = new Map<
+    string,
+    { color: string; repoCount: number; commitCount: number }
+  >();
+  for (const repo of contributionsCollection.commitContributionsByRepository) {
+    const lang = repo.repository.primaryLanguage;
+    if (lang) {
+      const existing = languageMap.get(lang.name) || {
+        color: lang.color,
+        repoCount: 0,
+        commitCount: 0,
+      };
+      existing.repoCount++;
+      existing.commitCount += repo.contributions.totalCount;
+      languageMap.set(lang.name, existing);
+    }
+  }
+
+  const languages = Array.from(languageMap.entries())
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.commitCount - a.commitCount);
+
+  const topRepos = user.repositories.nodes.slice(0, 5).map((repo) => ({
+    name: repo.name,
+    language: repo.primaryLanguage?.name ?? null,
+    stars: repo.stargazerCount,
+  }));
+
+  return {
+    user: {
+      login: user.login,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      location: user.location,
+      company: user.company,
+      twitterUsername: user.twitterUsername,
+      followers: user.followers.totalCount,
+      following: user.following.totalCount,
+    },
+    contributions: {
+      total: contributionsCollection.contributionCalendar.totalContributions,
+      commits: contributionsCollection.totalCommitContributions,
+      issues: contributionsCollection.totalIssueContributions,
+      pullRequests: contributionsCollection.totalPullRequestContributions,
+      pullRequestReviews:
+        contributionsCollection.totalPullRequestReviewContributions,
+      repositories: contributionsCollection.totalRepositoryContributions,
+      restricted: contributionsCollection.restrictedContributionsCount,
+    },
+    calendar,
+    languages,
+    topRepos,
+  };
+}

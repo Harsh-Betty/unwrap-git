@@ -1,6 +1,7 @@
 "use client";
 import {
   AuthButtons,
+  InsightsPanel,
   LoadingLog,
   StatsOutput,
   TerminalInput,
@@ -9,7 +10,7 @@ import {
 import type { UserStats } from "@/lib/github";
 import { useLogStore } from "@/lib/log-store";
 import { useSession } from "@/lib/auth-client";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useRef, useCallback } from "react";
 import {
   getAuthenticatedStats,
   getPublicStats,
@@ -34,78 +35,119 @@ const ASCII_HEADER = `
 `.trim();
 
 export default function Home() {
-  const { data: session } = useSession();
+  const { data: session, isPending: isSessionLoading } = useSession();
   const [isPending, startTransition] = useTransition();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [searchedUsername, setSearchedUsername] = useState<string | null>(null);
+  const [showSearchInput, setShowSearchInput] = useState(true);
+  const hasAutoSearched = useRef(false);
 
   const { addLog, updateLog, clearLogs, setLoading } = useLogStore();
 
-  const handleSearch = async (username: string) => {
+  const handleSearch = useCallback(
+    async (username: string) => {
+      setStats(null);
+      setError(null);
+      clearLogs();
+      setHasSearched(true);
+      setLoading(true);
+      setIsAuthenticated(false);
+      setSearchedUsername(username);
+
+      startTransition(async () => {
+        const log1 = addLog(`Initializing connection to GitHub API...`);
+
+        await new Promise((r) => setTimeout(r, 400));
+        updateLog(log1, "done");
+
+        const log2 = addLog(`Validating username: ${username}`);
+        await new Promise((r) => setTimeout(r, 300));
+        updateLog(log2, "done");
+
+        const isAuthSearch = !!session?.user;
+        const modeLog = addLog(
+          isAuthSearch
+            ? `Authenticated mode: including private repos...`
+            : `Public mode: fetching public contributions...`
+        );
+        await new Promise((r) => setTimeout(r, 200));
+        updateLog(modeLog, "done");
+
+        const log3 = addLog(`Fetching contribution data for 2025...`);
+
+        const result: StatsResult = isAuthSearch
+          ? await getAuthenticatedStats(username)
+          : await getPublicStats(username);
+
+        if (result.success && result.data) {
+          updateLog(log3, "done");
+
+          const log4 = addLog(
+            `Processing ${result.data.contributions.total} contributions...`
+          );
+          await new Promise((r) => setTimeout(r, 300));
+          updateLog(log4, "done");
+
+          const log5 = addLog(
+            `Analyzing ${result.data.languages.length} languages...`
+          );
+          await new Promise((r) => setTimeout(r, 200));
+          updateLog(log5, "done");
+
+          const log6 = addLog(`Computing insights and metrics...`);
+          await new Promise((r) => setTimeout(r, 200));
+          updateLog(log6, "done");
+
+          const log7 = addLog(`Compilation complete. Rendering output...`);
+          await new Promise((r) => setTimeout(r, 200));
+          updateLog(log7, "done");
+
+          setStats(result.data);
+          setIsAuthenticated(result.isAuthenticated || false);
+        } else {
+          updateLog(log3, "error");
+          const errorLog = addLog(result.error || "Unknown error occurred");
+          updateLog(errorLog, "error");
+          setError(result.error || "Failed to fetch stats");
+        }
+
+        setLoading(false);
+      });
+    },
+    [session, addLog, updateLog, clearLogs, setLoading]
+  );
+
+  // auto-search when user logs in
+  useEffect(() => {
+    if (session?.user && !hasAutoSearched.current && !isSessionLoading) {
+      hasAutoSearched.current = true;
+      setShowSearchInput(false);
+      // use session.user.name as username (GitHub username)
+      const username = session.user.name;
+      if (username) {
+        handleSearch(username);
+      }
+    }
+  }, [session, isSessionLoading, handleSearch]);
+
+  // reset auto-search flag when user logs out
+  useEffect(() => {
+    if (!session?.user) {
+      hasAutoSearched.current = false;
+      setShowSearchInput(true);
+    }
+  }, [session]);
+
+  const handleSearchAnother = () => {
+    setShowSearchInput(true);
     setStats(null);
     setError(null);
+    setHasSearched(false);
     clearLogs();
-    setHasSearched(true);
-    setLoading(true);
-    setIsAuthenticated(false);
-
-    startTransition(async () => {
-      const log1 = addLog(`Initializing connection to GitHub API...`);
-
-      await new Promise((r) => setTimeout(r, 400));
-      updateLog(log1, "done");
-
-      const log2 = addLog(`Validating username: ${username}`);
-      await new Promise((r) => setTimeout(r, 300));
-      updateLog(log2, "done");
-
-      const isAuthSearch = !!session?.user;
-      const modeLog = addLog(
-        isAuthSearch
-          ? `Authenticated mode: including private repos...`
-          : `Public mode: fetching public contributions...`
-      );
-      await new Promise((r) => setTimeout(r, 200));
-      updateLog(modeLog, "done");
-
-      const log3 = addLog(`Fetching contribution data for 2025...`);
-
-      const result: StatsResult = isAuthSearch
-        ? await getAuthenticatedStats(username)
-        : await getPublicStats(username);
-
-      if (result.success && result.data) {
-        updateLog(log3, "done");
-
-        const log4 = addLog(
-          `Processing ${result.data.contributions.total} contributions...`
-        );
-        await new Promise((r) => setTimeout(r, 300));
-        updateLog(log4, "done");
-
-        const log5 = addLog(
-          `Analyzing ${result.data.languages.length} languages...`
-        );
-        await new Promise((r) => setTimeout(r, 200));
-        updateLog(log5, "done");
-
-        const log6 = addLog(`Compilation complete. Rendering output...`);
-        await new Promise((r) => setTimeout(r, 200));
-        updateLog(log6, "done");
-
-        setStats(result.data);
-        setIsAuthenticated(result.isAuthenticated || false);
-      } else {
-        updateLog(log3, "error");
-        const errorLog = addLog(result.error || "Unknown error occurred");
-        updateLog(errorLog, "error");
-        setError(result.error || "Failed to fetch stats");
-      }
-
-      setLoading(false);
-    });
+    setSearchedUsername(null);
   };
 
   return (
@@ -117,7 +159,7 @@ export default function Home() {
             {ASCII_HEADER}
           </pre>
           <div className="mt-4 text-[#00ff00]/60 text-sm flex flex-wrap items-center gap-2">
-            <span className="text-[#00ff00]/40">[v2025.2.0]</span>
+            <span className="text-[#00ff00]/40">[v2025.3.0]</span>
             <span>•</span>
             <span>Your Year in Code</span>
             <span>•</span>
@@ -139,24 +181,28 @@ export default function Home() {
           2025
         </p>
         <p className="text-[#00ff00]/60 text-sm">
-          Enter a GitHub username to see their 2025 contribution stats.
-          {session?.user && (
-            <span className="text-[#00ff00]">
-              {" "}
-              (includes private repos when viewing your own profile)
-            </span>
+          {session?.user ? (
+            <>
+              Viewing stats for your account. Includes private repository
+              contributions.
+            </>
+          ) : (
+            <>Enter a GitHub username to see their 2025 contribution stats.</>
           )}
         </p>
       </div>
 
-      <div className="mb-6 py-4 px-4 bg-[#111] rounded border border-[#333]">
-        <TerminalInput
-          onSubmit={handleSearch}
-          disabled={isPending}
-          placeholder="Enter GitHub username..."
-          prompt={isPending ? "⏳" : ">"}
-        />
-      </div>
+      {/* search input - show when not logged in OR when clicking "search another" */}
+      {showSearchInput && (
+        <div className="mb-6 py-4 px-4 bg-[#111] rounded border border-[#333]">
+          <TerminalInput
+            onSubmit={handleSearch}
+            disabled={isPending}
+            placeholder="Enter GitHub username..."
+            prompt={isPending ? "⏳" : ">"}
+          />
+        </div>
+      )}
 
       <LoadingLog />
 
@@ -168,22 +214,43 @@ export default function Home() {
               <span>Results include private repository contributions</span>
             </div>
           )}
+
+          {/* Insights Panel */}
+          {stats && (
+            <InsightsPanel
+              insights={stats.insights}
+              username={stats.user.login}
+            />
+          )}
+
           <StatsOutput stats={stats} error={error} />
+
+          {/* Search another user button */}
+          {stats && !showSearchInput && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={handleSearchAnother}
+                className="px-4 py-2 text-sm text-[#00ff00] border border-[#00ff00]/30 rounded 
+                           hover:bg-[#00ff00]/10 transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <span>🔍</span>
+                <span>Search for another user</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {!hasSearched && (
+      {!hasSearched && !session?.user && (
         <div className="mt-12 text-[#00ff00]/30 text-xs">
           <p>
             💡 Tip: Try searching for popular developers like
             &quot;torvalds&quot;, &quot;gaearon&quot;, or
             &quot;sindresorhus&quot;
           </p>
-          {!session?.user && (
-            <p className="mt-2">
-              🔐 Sign in with GitHub to include your private repository stats
-            </p>
-          )}
+          <p className="mt-2">
+            🔐 Sign in with GitHub to auto-load your stats with private repos
+          </p>
         </div>
       )}
     </TerminalLayout>

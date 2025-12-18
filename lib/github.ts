@@ -90,6 +90,25 @@ const CONTRIBUTIONS_QUERY = `
   }
 `;
 
+import { computeInsights, type Insights } from "./analytics";
+
+// simple in-memory cache with TTL
+const statsCache = new Map<string, { data: UserStats; timestamp: number }>();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function getCachedStats(key: string): UserStats | null {
+  const cached = statsCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  statsCache.delete(key);
+  return null;
+}
+
+function setCachedStats(key: string, data: UserStats): void {
+  statsCache.set(key, { data, timestamp: Date.now() });
+}
+
 export interface UserStats {
   user: {
     login: string;
@@ -127,9 +146,15 @@ export interface UserStats {
     language: string | null;
     stars: number;
   }[];
+  insights: Insights;
 }
 
 export async function fetchUserStats(username: string): Promise<UserStats> {
+  // check cache first
+  const cacheKey = `public:${username}`;
+  const cached = getCachedStats(cacheKey);
+  if (cached) return cached;
+
   const now = new Date();
   const startOf2025 = new Date("2025-01-01T00:00:00Z");
   const endDate =
@@ -229,7 +254,9 @@ export async function fetchUserStats(username: string): Promise<UserStats> {
     stars: repo.stargazerCount,
   }));
 
-  return {
+  const insights = computeInsights(calendar);
+
+  const result: UserStats = {
     user: {
       login: user.login,
       name: user.name,
@@ -254,7 +281,11 @@ export async function fetchUserStats(username: string): Promise<UserStats> {
     calendar,
     languages,
     topRepos,
+    insights,
   };
+
+  setCachedStats(`public:${username}`, result);
+  return result;
 }
 
 // fetch stats with user's access token (includes private repos)
@@ -262,6 +293,11 @@ export async function fetchUserStatsWithToken(
   username: string,
   accessToken: string
 ): Promise<UserStats> {
+  // check cache first
+  const cacheKey = `auth:${username}`;
+  const cached = getCachedStats(cacheKey);
+  if (cached) return cached;
+
   const userOctokit = new Octokit({
     auth: accessToken,
     retry: { enabled: true },
@@ -366,7 +402,9 @@ export async function fetchUserStatsWithToken(
     stars: repo.stargazerCount,
   }));
 
-  return {
+  const insights = computeInsights(calendar);
+
+  const result: UserStats = {
     user: {
       login: user.login,
       name: user.name,
@@ -391,5 +429,9 @@ export async function fetchUserStatsWithToken(
     calendar,
     languages,
     topRepos,
+    insights,
   };
+
+  setCachedStats(`auth:${username}`, result);
+  return result;
 }

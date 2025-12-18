@@ -1,10 +1,12 @@
 import { betterAuth } from "better-auth";
-import Database from "better-sqlite3";
+import { Pool } from "pg";
 
-const db = new Database("./sqlite.db");
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 export const auth = betterAuth({
-  database: db,
+  database: pool,
   socialProviders: {
     github: {
       clientId: process.env.AUTH_GITHUB_ID as string,

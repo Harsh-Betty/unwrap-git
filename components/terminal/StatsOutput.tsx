@@ -1,10 +1,71 @@
 "use client";
 import type { UserStats } from "@/lib/github";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface StatsOutputProps {
   stats: UserStats | null;
   error?: string | null;
+}
+
+interface CollapsibleSectionProps {
+  title: string;
+  data: unknown;
+  defaultCollapsed?: boolean;
+  lineStart: number;
+}
+
+function CollapsibleSection({
+  title,
+  data,
+  defaultCollapsed = false,
+  lineStart,
+}: CollapsibleSectionProps) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const jsonString = JSON.stringify(data, null, 2);
+  const lines = jsonString.split("\n");
+
+  return (
+    <div className="border-b border-[#00ff00]/10 last:border-b-0">
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="w-full flex items-center gap-2 py-2 px-4 hover:bg-[#00ff00]/5 
+                   transition-colors text-left cursor-pointer group"
+      >
+        <span className="select-none w-10 shrink-0 text-right pr-4 text-[#00ff00]/30 border-r border-[#00ff00]/10 mr-4">
+          {lineStart}
+        </span>
+        {collapsed ? (
+          <ChevronRight className="w-4 h-4 text-[#00ff00]/50" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-[#00ff00]/50" />
+        )}
+        <span className="text-cyan-400">&quot;{title}&quot;</span>
+        <span className="text-white">:</span>
+        {collapsed && (
+          <span className="text-[#00ff00]/40 text-xs ml-2">
+            [{lines.length} lines...]
+          </span>
+        )}
+      </button>
+      {!collapsed && (
+        <pre className="pl-4 text-sm">
+          <code>
+            {lines.map((line, i) => (
+              <div key={i} className="flex hover:bg-[#00ff00]/5 group">
+                <span className="select-none w-10 shrink-0 text-right pr-4 text-[#00ff00]/30 border-r border-[#00ff00]/10 mr-4">
+                  {lineStart + i + 1}
+                </span>
+                <span className="text-[#00ff00]/90 whitespace-pre pl-4">
+                  {highlightJson(line)}
+                </span>
+              </div>
+            ))}
+          </code>
+        </pre>
+      )}
+    </div>
+  );
 }
 
 export function StatsOutput({ stats, error }: StatsOutputProps) {
@@ -43,8 +104,16 @@ export function StatsOutput({ stats, error }: StatsOutputProps) {
 
   if (!stats) return null;
 
-  const jsonOutput = JSON.stringify(stats, null, 2);
-  const lines = jsonOutput.split("\n");
+  const userLines = JSON.stringify(stats.user, null, 2).split("\n").length;
+  const contribLines = JSON.stringify(stats.contributions, null, 2).split(
+    "\n"
+  ).length;
+  const calendarLines = JSON.stringify(stats.calendar, null, 2).split(
+    "\n"
+  ).length;
+  const langLines = JSON.stringify(stats.languages, null, 2).split("\n").length;
+
+  let lineCounter = 2;
 
   return (
     <div
@@ -65,22 +134,53 @@ export function StatsOutput({ stats, error }: StatsOutputProps) {
           </span>
         </div>
 
-        {/* JSON output */}
-        <div className="overflow-x-auto">
-          <pre className="p-4 text-sm">
-            <code>
-              {lines.map((line, i) => (
-                <div key={i} className="flex hover:bg-[#00ff00]/5 group">
-                  <span className="select-none w-10 shrink-0 text-right pr-4 text-[#00ff00]/30 border-r border-[#00ff00]/10 mr-4">
-                    {i + 1}
-                  </span>
-                  <span className="text-[#00ff00]/90 whitespace-pre">
-                    {highlightJson(line)}
-                  </span>
-                </div>
-              ))}
-            </code>
-          </pre>
+        <div className="flex hover:bg-[#00ff00]/5 px-4 py-1">
+          <span className="select-none w-10 shrink-0 text-right pr-4 text-[#00ff00]/30 border-r border-[#00ff00]/10 mr-4">
+            1
+          </span>
+          <span className="text-[#00ff00]/90">{"{"}</span>
+        </div>
+
+        <CollapsibleSection
+          title="user"
+          data={stats.user}
+          lineStart={lineCounter}
+        />
+        {(lineCounter += userLines + 1)}
+
+        <CollapsibleSection
+          title="contributions"
+          data={stats.contributions}
+          lineStart={lineCounter}
+        />
+        {(lineCounter += contribLines + 1)}
+
+        <CollapsibleSection
+          title="calendar"
+          data={stats.calendar}
+          defaultCollapsed={true}
+          lineStart={lineCounter}
+        />
+        {(lineCounter += calendarLines + 1)}
+
+        <CollapsibleSection
+          title="languages"
+          data={stats.languages}
+          lineStart={lineCounter}
+        />
+        {(lineCounter += langLines + 1)}
+
+        <CollapsibleSection
+          title="topRepos"
+          data={stats.topRepos}
+          lineStart={lineCounter}
+        />
+
+        <div className="flex hover:bg-[#00ff00]/5 px-4 py-1">
+          <span className="select-none w-10 shrink-0 text-right pr-4 text-[#00ff00]/30 border-r border-[#00ff00]/10 mr-4">
+            ~
+          </span>
+          <span className="text-[#00ff00]/90">{"}"}</span>
         </div>
 
         <div className="px-4 py-3 bg-[#0a140a] border-t border-[#00ff00]/20">

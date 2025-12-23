@@ -21,11 +21,11 @@ const MONTH_LABELS = [
 ];
 
 function getColorForCount(count: number): string {
-  if (count === 0) return "#161b22";
-  if (count <= 3) return "#0e4429";
-  if (count <= 6) return "#006d32";
-  if (count <= 9) return "#26a641";
-  return "#39d353";
+  if (count === 0) return "#1a1408";
+  if (count <= 3) return "#3d2800";
+  if (count <= 6) return "#8b5a00";
+  if (count <= 9) return "#cc8800";
+  return "#ffb000";
 }
 
 export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
@@ -86,8 +86,8 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
   const height = 7 * (cellSize + cellGap) + 30;
 
   return (
-    <div className="w-full bg-[#0a0a0a] rounded-lg border border-[#00ff00]/20 p-4 overflow-x-auto">
-      <div className="text-[#00ff00]/60 text-xs uppercase tracking-wider mb-4">
+    <div className="w-full bg-terminal-bg rounded-lg border border-terminal/20 p-4 overflow-x-auto">
+      <div className="text-terminal/60 text-xs uppercase tracking-wider mb-4">
         Activity Calendar · 2025
       </div>
       <div className="relative" style={{ minWidth: width }}>
@@ -98,7 +98,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
               x={30 + weekIndex * (cellSize + cellGap)}
               y={12}
               fontSize={10}
-              fill="#00ff0060"
+              fill="#ffb00060"
             >
               {month}
             </text>
@@ -110,7 +110,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
               x={0}
               y={30 + i * (cellSize + cellGap) + cellSize - 2}
               fontSize={9}
-              fill="#00ff0040"
+              fill="#ffb00040"
             >
               {day}
             </text>
@@ -147,7 +147,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
 
         {hoveredDay && (
           <div
-            className="fixed z-50 px-2 py-1 bg-[#0a0a0a] border border-[#00ff00] rounded text-xs text-[#00ff00] whitespace-nowrap pointer-events-none"
+            className="fixed z-50 px-2 py-1 bg-terminal-bg border border-terminal rounded text-xs text-terminal whitespace-nowrap pointer-events-none"
             style={{
               left: hoveredDay.x,
               top: hoveredDay.y - 30,
@@ -160,7 +160,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2 mt-4 text-xs text-[#00ff00]/40">
+      <div className="flex items-center gap-2 mt-4 text-xs text-terminal/40">
         <span>Less</span>
         {[0, 3, 6, 9, 12].map((count) => (
           <div

@@ -9,8 +9,8 @@ export function ContributionWave({ data }: ContributionWaveProps) {
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="w-full h-48 bg-[#0a0a0a] rounded-lg border border-[#00ff00]/20 p-4">
-      <div className="text-[#00ff00]/60 text-xs uppercase tracking-wider mb-2">
+    <div className="w-full h-48 bg-terminal-bg rounded-lg border border-terminal/20 p-4">
+      <div className="text-terminal/60 text-xs uppercase tracking-wider mb-2">
         Contribution Wave · 2025
       </div>
       <ResponsiveContainer width="100%" height="85%">
@@ -20,8 +20,8 @@ export function ContributionWave({ data }: ContributionWaveProps) {
         >
           <defs>
             <linearGradient id="waveGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00ff00" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#00ff00" stopOpacity={0} />
+              <stop offset="5%" stopColor="#ffb000" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#ffb000" stopOpacity={0} />
             </linearGradient>
             <filter id="glow">
               <feGaussianBlur stdDeviation="2" result="coloredBlur" />
@@ -35,15 +35,15 @@ export function ContributionWave({ data }: ContributionWaveProps) {
             dataKey="week"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#00ff0050", fontSize: 10 }}
+            tick={{ fill: "#ffb00050", fontSize: 10 }}
             tickFormatter={(week) => (week % 4 === 0 ? `W${week}` : "")}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#0a0a0a",
-              border: "1px solid #00ff00",
+              backgroundColor: "#0a0806",
+              border: "1px solid #ffb000",
               borderRadius: "4px",
-              color: "#00ff00",
+              color: "#ffb000",
               fontSize: "12px",
             }}
             labelFormatter={(week) => `Week ${week}`}
@@ -52,7 +52,7 @@ export function ContributionWave({ data }: ContributionWaveProps) {
           <Area
             type="monotone"
             dataKey="count"
-            stroke="#00ff00"
+            stroke="#ffb000"
             strokeWidth={2}
             fill="url(#waveGradient)"
             filter="url(#glow)"

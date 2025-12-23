@@ -157,18 +157,18 @@ export default function Home() {
     <TerminalLayout>
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
         <div>
-          <pre className="ascii-art text-[#00ff00] glow-text overflow-x-auto">
+          <pre className="ascii-art text-terminal glow-text overflow-x-auto">
             {ASCII_HEADER}
           </pre>
-          <div className="mt-4 text-[#00ff00]/60 text-sm flex flex-wrap items-center gap-2">
-            <span className="text-[#00ff00]/40">[v2025.5.0]</span>
+          <div className="mt-4 text-terminal/60 text-sm flex flex-wrap items-center gap-2">
+            <span className="text-terminal/40">[v2025.5.0]</span>
             <span>•</span>
             <span>Your Year in Code</span>
             <span>•</span>
             {session?.user ? (
-              <span className="text-[#00ff00]">Private Mode</span>
+              <span className="text-terminal">Private Mode</span>
             ) : (
-              <span className="text-[#00ff00]/40">Public Mode</span>
+              <span className="text-terminal/40">Public Mode</span>
             )}
           </div>
         </div>
@@ -178,11 +178,11 @@ export default function Home() {
       </div>
 
       <div className="mb-6 space-y-2">
-        <p className="text-[#00ff00]/80">
-          <span className="text-[#666]">$</span> Welcome to GitHub Unwrapped
-          2025
+        <p className="text-terminal/80">
+          <span className="text-terminal-dim">$</span> Welcome to GitHub
+          Unwrapped 2025
         </p>
-        <p className="text-[#00ff00]/60 text-sm">
+        <p className="text-terminal/60 text-sm">
           {session?.user ? (
             <>
               Viewing stats for your account. Includes private repository
@@ -195,7 +195,7 @@ export default function Home() {
       </div>
 
       {showSearchInput && (
-        <div className="mb-6 py-4 px-4 bg-[#111] rounded border border-[#333]">
+        <div className="mb-6 py-4 px-4 bg-terminal-surface rounded border border-terminal/20">
           <TerminalInput
             onSubmit={handleSearch}
             disabled={isPending}
@@ -210,8 +210,8 @@ export default function Home() {
       {hasSearched && (
         <div>
           {isAuthenticated && (
-            <div className="mb-2 text-xs text-[#00ff00]/50 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#00ff00] animate-pulse" />
+            <div className="mb-2 text-xs text-terminal/50 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-terminal animate-pulse" />
               <span>Results include private repository contributions</span>
             </div>
           )}
@@ -228,7 +228,7 @@ export default function Home() {
 
           <div className="mt-6">
             <details className="group">
-              <summary className="cursor-pointer text-[#00ff00]/50 text-xs hover:text-[#00ff00]/70 transition-colors">
+              <summary className="cursor-pointer text-terminal/50 text-xs hover:text-terminal/70 transition-colors">
                 <span className="group-open:hidden">▶ Show raw JSON data</span>
                 <span className="hidden group-open:inline">
                   ▼ Hide raw JSON data
@@ -244,10 +244,9 @@ export default function Home() {
             <div className="mt-6 flex flex-wrap justify-center gap-4">
               <button
                 onClick={handleSearchAnother}
-                className="px-4 py-2 text-sm text-[#00ff00] border border-[#00ff00]/30 rounded 
-                           hover:bg-[#00ff00]/10 transition-colors cursor-pointer flex items-center gap-2"
+                className="px-4 py-2 text-sm text-terminal border border-terminal/30 rounded 
+                           hover:bg-terminal/10 transition-colors cursor-pointer flex items-center gap-2"
               >
-                <span>🔍</span>
                 <span>Search for another user</span>
               </button>
 
@@ -267,7 +266,6 @@ export default function Home() {
                              hover:bg-[#ffd700]/10 transition-colors cursor-pointer flex items-center gap-2
                              disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>🏆</span>
                   <span>
                     {joiningLeaderboard ? "Joining..." : "Join Leaderboard"}
                   </span>
@@ -277,10 +275,9 @@ export default function Home() {
               {joinedLeaderboard && (
                 <Link
                   href="/leaderboard"
-                  className="px-4 py-2 text-sm text-[#00ff00] bg-[#00ff00]/10 border border-[#00ff00]/30 rounded 
-                             hover:bg-[#00ff00]/20 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 text-sm text-terminal bg-terminal/10 border border-terminal/30 rounded 
+                             hover:bg-terminal/20 transition-colors flex items-center gap-2"
                 >
-                  <span>✅</span>
                   <span>View Leaderboard</span>
                 </Link>
               )}
@@ -290,29 +287,28 @@ export default function Home() {
       )}
 
       {!hasSearched && !session?.user && (
-        <div className="mt-12 text-[#00ff00]/30 text-xs">
+        <div className="mt-12 text-terminal/30 text-xs">
           <p>
-            💡 Tip: Try searching for popular developers like
-            &quot;torvalds&quot;, &quot;gaearon&quot;, or
-            &quot;sindresorhus&quot;
+            Tip: Try searching for popular developers like &quot;torvalds&quot;,
+            &quot;gaearon&quot;, or &quot;sindresorhus&quot;
           </p>
           <p className="mt-2">
-            🔐 Sign in with GitHub to auto-load your stats with private repos
+            Sign in with GitHub to auto-load your stats with private repos
           </p>
         </div>
       )}
-      <div className="mt-12 pt-6 border-t border-[#00ff00]/20 flex flex-wrap justify-center gap-6 text-sm">
+      <div className="mt-12 pt-6 border-t border-terminal/20 flex flex-wrap justify-center gap-6 text-sm">
         <Link
           href="/leaderboard"
-          className="text-[#00ff00]/50 hover:text-[#00ff00] transition-colors"
+          className="text-terminal/50 hover:text-terminal transition-colors"
         >
-          🏆 Leaderboard
+          Leaderboard
         </Link>
         <Link
           href="/how-it-works"
-          className="text-[#00ff00]/50 hover:text-[#00ff00] transition-colors"
+          className="text-terminal/50 hover:text-terminal transition-colors"
         >
-          📖 How It Works
+          How It Works
         </Link>
       </div>
     </TerminalLayout>

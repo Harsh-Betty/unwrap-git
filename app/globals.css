@@ -45,6 +45,18 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  --color-terminal: #ffb000;
+  --color-terminal-dim: #cc8800;
+  --color-terminal-bright: #ffc840;
+  --color-terminal-bg: #0a0806;
+  --color-terminal-surface: #1a1408;
+
+  --color-activity-0: #1a1408;
+  --color-activity-1: #3d2800;
+  --color-activity-2: #8b5a00;
+  --color-activity-3: #cc8800;
+  --color-activity-4: #ffb000;
 }
 
 :root {
@@ -184,13 +196,13 @@
 
 /* Glowing text effect */
 .glow-text {
-  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5), 0 0 10px rgba(0, 255, 0, 0.3),
-    0 0 20px rgba(0, 255, 0, 0.2);
+  text-shadow: 0 0 5px rgba(255, 176, 0, 0.5), 0 0 10px rgba(255, 176, 0, 0.3),
+    0 0 20px rgba(255, 176, 0, 0.2);
 }
 
 .glow-text-strong {
-  text-shadow: 0 0 5px rgba(0, 255, 0, 0.8), 0 0 10px rgba(0, 255, 0, 0.6),
-    0 0 20px rgba(0, 255, 0, 0.4), 0 0 40px rgba(0, 255, 0, 0.2);
+  text-shadow: 0 0 5px rgba(255, 176, 0, 0.8), 0 0 10px rgba(255, 176, 0, 0.6),
+    0 0 20px rgba(255, 176, 0, 0.4), 0 0 40px rgba(255, 176, 0, 0.2);
 }
 
 /* Terminal container styles */
@@ -206,17 +218,17 @@
 }
 
 .terminal-content::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #0a0806;
 }
 
 .terminal-content::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #3d2800;
   border-radius: 4px;
 }
 
 .terminal-content::-webkit-scrollbar-thumb:hover {
-  background: #00ff00;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+  background: #ffb000;
+  box-shadow: 0 0 10px rgba(255, 176, 0, 0.5);
 }
 
 /* ASCII art styling */
@@ -240,7 +252,7 @@
 
 /* Input focus glow */
 .terminal-input-wrapper:focus-within {
-  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.5);
 }
 
 /* Pulse animation for loading */
@@ -248,11 +260,11 @@
   0%,
   100% {
     opacity: 1;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    text-shadow: 0 0 5px rgba(255, 176, 0, 0.5);
   }
   50% {
     opacity: 0.7;
-    text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+    text-shadow: 0 0 20px rgba(255, 176, 0, 0.8);
   }
 }
 

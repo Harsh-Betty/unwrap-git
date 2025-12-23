@@ -18,13 +18,13 @@ export function LanguageChart({ languages }: LanguageChartProps) {
   const data = topLangs.map((lang) => ({
     name: lang.name,
     value: lang.commitCount,
-    color: lang.color || "#00ff00",
+    color: lang.color || "#ffb000",
     percentage: Math.round((lang.commitCount / totalCommits) * 100),
   }));
 
   return (
-    <div className="w-full bg-[#0a0a0a] rounded-lg border border-[#00ff00]/20 p-4">
-      <div className="text-[#00ff00]/60 text-xs uppercase tracking-wider mb-4">
+    <div className="w-full bg-terminal-bg rounded-lg border border-terminal/20 p-4">
+      <div className="text-terminal/60 text-xs uppercase tracking-wider mb-4">
         Language Breakdown
       </div>
       <div className="flex flex-col md:flex-row items-center gap-4">
@@ -46,17 +46,17 @@ export function LanguageChart({ languages }: LanguageChartProps) {
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.color}
-                    stroke="#0a0a0a"
+                    stroke="#0a0806"
                     strokeWidth={2}
                   />
                 ))}
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#0a0a0a",
-                  border: "1px solid #00ff00",
+                  backgroundColor: "#0a0806",
+                  border: "1px solid #ffb000",
                   borderRadius: "4px",
-                  color: "#00ff00",
+                  color: "#ffb000",
                   fontSize: "12px",
                 }}
                 formatter={(value?: number, name?: string) => [
@@ -74,8 +74,8 @@ export function LanguageChart({ languages }: LanguageChartProps) {
                 className="w-3 h-3 rounded-full shrink-0"
                 style={{ backgroundColor: lang.color }}
               />
-              <span className="text-[#00ff00]/80 truncate">{lang.name}</span>
-              <span className="text-[#00ff00]/40 text-xs">
+              <span className="text-terminal/80 truncate">{lang.name}</span>
+              <span className="text-terminal/40 text-xs">
                 {lang.percentage}%
               </span>
             </div>

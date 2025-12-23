@@ -29,7 +29,7 @@ function LogLine({ log, index }: { log: LogEntry; index: number }) {
 
   const statusIcon = {
     pending: <span className="text-yellow-400 animate-pulse">[...]</span>,
-    done: <span className="text-[#00ff00]">[✓]</span>,
+    done: <span className="text-terminal">[✓]</span>,
     error: <span className="text-red-500">[✗]</span>,
   };
 
@@ -45,9 +45,9 @@ function LogLine({ log, index }: { log: LogEntry; index: number }) {
       <span className="shrink-0">{statusIcon[log.status]}</span>
       <span
         className={`
-        ${log.status === "done" ? "text-[#00ff00]" : ""}
+        ${log.status === "done" ? "text-terminal" : ""}
         ${log.status === "error" ? "text-red-400" : ""}
-        ${log.status === "pending" ? "text-[#00ff00]/80" : ""}
+        ${log.status === "pending" ? "text-terminal/80" : ""}
       `}
       >
         {displayedText}
@@ -65,12 +65,12 @@ export function LoadingLog() {
   if (logs.length === 0) return null;
 
   return (
-    <div className="loading-log mt-6 p-4 bg-[#111] rounded border border-[#333] shadow-[0_0_20px_rgba(0,255,0,0.1)]">
-      <div className="log-header flex items-center gap-2 mb-4 pb-2 border-b border-[#333]">
-        <span className="text-[#666] text-xs uppercase tracking-widest">
+    <div className="loading-log mt-6 p-4 bg-terminal-surface rounded border border-terminal/20 shadow-[0_0_20px_rgba(255,176,0,0.1)]">
+      <div className="log-header flex items-center gap-2 mb-4 pb-2 border-b border-terminal/20">
+        <span className="text-terminal-dim text-xs uppercase tracking-widest">
           System Log
         </span>
-        <span className="flex-1 h-px bg-linear-to-r from-[#333] to-transparent" />
+        <span className="flex-1 h-px bg-linear-to-r from-terminal/30 to-transparent" />
       </div>
       <div className="log-entries space-y-1">
         {logs.map((log, index) => (

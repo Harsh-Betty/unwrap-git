@@ -32,7 +32,7 @@ export function TerminalInput({
 
   return (
     <div className="terminal-input-wrapper flex items-center gap-2 group">
-      <span className="text-[#00ff00] text-lg font-bold animate-pulse">
+      <span className="text-terminal text-lg font-bold animate-pulse">
         {prompt}
       </span>
 
@@ -45,9 +45,9 @@ export function TerminalInput({
           onKeyDown={handleKeyDown}
           disabled={disabled}
           placeholder={placeholder}
-          className="w-full bg-transparent border-none outline-none text-[#00ff00] 
-                     placeholder-[#00ff00]/30 text-lg tracking-wide
-                     caret-[#00ff00] font-mono
+          className="w-full bg-transparent border-none outline-none text-terminal 
+                     placeholder-terminal/30 text-lg tracking-wide
+                     caret-terminal font-mono
                      disabled:opacity-50 disabled:cursor-not-allowed"
           autoComplete="off"
           spellCheck={false}
@@ -62,7 +62,7 @@ export function TerminalInput({
       </div>
 
       {value.trim() && !disabled && (
-        <span className="text-[#00ff00]/50 text-sm hidden sm:inline">
+        <span className="text-terminal/50 text-sm hidden sm:inline">
           [ENTER]
         </span>
       )}

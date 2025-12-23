@@ -4,17 +4,38 @@ import dynamic from "next/dynamic";
 import { ContributionWave } from "./charts/ContributionWave";
 import { LanguageChart } from "./charts/LanguageChart";
 import { ActivityCalendar } from "./charts/ActivityCalendar";
+import { BarChart3, Calendar, Dna, Mountain } from "lucide-react";
 import type { UserStats } from "@/lib/github";
 
-// lazy load 3D component
-const GitSkyline = dynamic(
-  () => import("./3d/GitSkyline").then((mod) => ({ default: mod.GitSkyline })),
+// lazy load 3D components
+const ContributionHelix = dynamic(
+  () =>
+    import("./3d/ContributionHelix").then((mod) => ({
+      default: mod.ContributionHelix,
+    })),
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-80 bg-[#050505] rounded-lg border border-[#00ff00]/20 flex items-center justify-center">
-        <div className="text-[#00ff00]/50 animate-pulse">
-          Loading 3D Skyline...
+      <div className="w-full h-80 bg-terminal-bg rounded-lg border border-terminal/20 flex items-center justify-center">
+        <div className="text-terminal/50 animate-pulse">
+          Loading 3D Helix...
+        </div>
+      </div>
+    ),
+  }
+);
+
+const ContributionTerrain = dynamic(
+  () =>
+    import("./3d/ContributionTerrain").then((mod) => ({
+      default: mod.ContributionTerrain,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-80 bg-terminal-bg rounded-lg border border-terminal/20 flex items-center justify-center">
+        <div className="text-terminal/50 animate-pulse">
+          Loading 3D Terrain...
         </div>
       </div>
     ),
@@ -25,12 +46,17 @@ interface VisualizationTabsProps {
   stats: UserStats;
 }
 
-type TabId = "charts" | "calendar" | "skyline";
+type TabId = "charts" | "calendar" | "helix" | "terrain";
 
-const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: "charts", label: "Charts", icon: "📊" },
-  { id: "calendar", label: "Calendar", icon: "📅" },
-  { id: "skyline", label: "3D Skyline", icon: "🏙️" },
+const TABS: {
+  id: TabId;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { id: "charts", label: "Charts", icon: BarChart3 },
+  { id: "calendar", label: "Calendar", icon: Calendar },
+  { id: "helix", label: "3D Helix", icon: Dna },
+  { id: "terrain", label: "3D Terrain", icon: Mountain },
 ];
 
 export function VisualizationTabs({ stats }: VisualizationTabsProps) {
@@ -38,22 +64,25 @@ export function VisualizationTabs({ stats }: VisualizationTabsProps) {
 
   return (
     <div className="mt-6">
-      <div className="flex border-b border-[#00ff00]/20 mb-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-sm transition-colors cursor-pointer flex items-center gap-2
-              ${
-                activeTab === tab.id
-                  ? "text-[#00ff00] border-b-2 border-[#00ff00] -mb-px"
-                  : "text-[#00ff00]/40 hover:text-[#00ff00]/70"
-              }`}
-          >
-            <span>{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
+      <div className="flex border-b border-terminal/20 mb-4">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 text-sm transition-colors cursor-pointer flex items-center gap-2
+                ${
+                  activeTab === tab.id
+                    ? "text-terminal border-b-2 border-terminal -mb-px"
+                    : "text-terminal/40 hover:text-terminal/70"
+                }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="space-y-4">
@@ -68,8 +97,18 @@ export function VisualizationTabs({ stats }: VisualizationTabsProps) {
           <ActivityCalendar calendar={stats.calendar} />
         )}
 
-        {activeTab === "skyline" && (
-          <GitSkyline calendar={stats.calendar} username={stats.user.login} />
+        {activeTab === "helix" && (
+          <ContributionHelix
+            calendar={stats.calendar}
+            username={stats.user.login}
+          />
+        )}
+
+        {activeTab === "terrain" && (
+          <ContributionTerrain
+            calendar={stats.calendar}
+            username={stats.user.login}
+          />
         )}
       </div>
     </div>

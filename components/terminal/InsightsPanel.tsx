@@ -1,6 +1,7 @@
 "use client";
 import type { Insights } from "@/lib/analytics";
 import { formatPeakDate } from "@/lib/analytics";
+import { BarChart3 } from "lucide-react";
 
 interface InsightsPanelProps {
   insights: Insights;
@@ -55,7 +56,7 @@ export function InsightsPanel({
   return (
     <div className="mt-6 p-4 bg-terminal-surface border border-terminal/20 rounded">
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-terminal text-lg">📊</span>
+        <BarChart3 className="w-5 h-5 text-terminal" />
         <span className="text-terminal/80 text-sm uppercase tracking-wider font-bold">
           2025 Insights for @{username}
         </span>

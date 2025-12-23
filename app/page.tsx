@@ -19,6 +19,7 @@ import {
 } from "./actions";
 import { joinLeaderboard } from "./leaderboard/actions";
 import Link from "next/link";
+import { Search, Trophy, BookOpen, Check } from "lucide-react";
 
 // ASCII header
 const ASCII_HEADER = `
@@ -247,6 +248,7 @@ export default function Home() {
                 className="px-4 py-2 text-sm text-terminal border border-terminal/30 rounded 
                            hover:bg-terminal/10 transition-colors cursor-pointer flex items-center gap-2"
               >
+                <Search className="w-4 h-4" />
                 <span>Search for another user</span>
               </button>
 
@@ -266,6 +268,7 @@ export default function Home() {
                              hover:bg-[#ffd700]/10 transition-colors cursor-pointer flex items-center gap-2
                              disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                  <Trophy className="w-4 h-4" />
                   <span>
                     {joiningLeaderboard ? "Joining..." : "Join Leaderboard"}
                   </span>
@@ -278,6 +281,7 @@ export default function Home() {
                   className="px-4 py-2 text-sm text-terminal bg-terminal/10 border border-terminal/30 rounded 
                              hover:bg-terminal/20 transition-colors flex items-center gap-2"
                 >
+                  <Check className="w-4 h-4" />
                   <span>View Leaderboard</span>
                 </Link>
               )}
@@ -300,14 +304,16 @@ export default function Home() {
       <div className="mt-12 pt-6 border-t border-terminal/20 flex flex-wrap justify-center gap-6 text-sm">
         <Link
           href="/leaderboard"
-          className="text-terminal/50 hover:text-terminal transition-colors"
+          className="text-terminal/50 hover:text-terminal transition-colors flex items-center gap-1"
         >
+          <Trophy className="w-4 h-4" />
           Leaderboard
         </Link>
         <Link
           href="/how-it-works"
-          className="text-terminal/50 hover:text-terminal transition-colors"
+          className="text-terminal/50 hover:text-terminal transition-colors flex items-center gap-1"
         >
+          <BookOpen className="w-4 h-4" />
           How It Works
         </Link>
       </div>

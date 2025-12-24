@@ -10,6 +10,7 @@ import {
 import { VisualizationTabs } from "@/components/VisualizationTabs";
 import type { UserStats } from "@/lib/github";
 import { useLogStore } from "@/lib/log-store";
+import { useStatsStore } from "@/lib/stats-store";
 import { useSession } from "@/lib/auth-client";
 import { useState, useTransition, useEffect, useRef, useCallback } from "react";
 import {
@@ -17,9 +18,9 @@ import {
   getPublicStats,
   type StatsResult,
 } from "./actions";
-import { joinLeaderboard } from "./leaderboard/actions";
+import { joinLeaderboard, checkUserInLeaderboard } from "./leaderboard/actions";
 import Link from "next/link";
-import { Search, Trophy, BookOpen, Check } from "lucide-react";
+import { Search, Trophy, BookOpen, Check, RefreshCw } from "lucide-react";
 
 // ASCII header
 const ASCII_HEADER = `
@@ -46,11 +47,12 @@ export default function Home() {
   const [hasSearched, setHasSearched] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showSearchInput, setShowSearchInput] = useState(true);
-  const [joinedLeaderboard, setJoinedLeaderboard] = useState(false);
+  const [isInLeaderboard, setIsInLeaderboard] = useState(false);
   const [joiningLeaderboard, setJoiningLeaderboard] = useState(false);
   const hasAutoSearched = useRef(false);
 
   const { addLog, updateLog, clearLogs, setLoading } = useLogStore();
+  const { setStats: setStoreStats } = useStatsStore();
 
   const handleSearch = useCallback(
     async (username: string) => {
@@ -113,6 +115,17 @@ export default function Home() {
 
           setStats(result.data);
           setIsAuthenticated(result.isAuthenticated || false);
+          setStoreStats(
+            result.data,
+            result.data.user.login,
+            result.isAuthenticated || false
+          );
+          if (session?.user) {
+            const leaderboardCheck = await checkUserInLeaderboard(
+              result.data.user.login
+            );
+            setIsInLeaderboard(leaderboardCheck.exists);
+          }
         } else {
           updateLog(log3, "error");
           const errorLog = addLog(result.error || "Unknown error occurred");
@@ -252,14 +265,14 @@ export default function Home() {
                 <span>Search for another user</span>
               </button>
 
-              {session?.user && !joinedLeaderboard && (
+              {session?.user && (
                 <button
                   onClick={async () => {
                     if (!stats) return;
                     setJoiningLeaderboard(true);
                     const result = await joinLeaderboard(stats);
                     if (result.success) {
-                      setJoinedLeaderboard(true);
+                      setIsInLeaderboard(true);
                     }
                     setJoiningLeaderboard(false);
                   }}
@@ -268,23 +281,36 @@ export default function Home() {
                              hover:bg-[#ffd700]/10 transition-colors cursor-pointer flex items-center gap-2
                              disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trophy className="w-4 h-4" />
-                  <span>
-                    {joiningLeaderboard ? "Joining..." : "Join Leaderboard"}
-                  </span>
+                  {isInLeaderboard ? (
+                    <>
+                      <RefreshCw
+                        className={`w-4 h-4 ${
+                          joiningLeaderboard ? "animate-spin" : ""
+                        }`}
+                      />
+                      <span>
+                        {joiningLeaderboard ? "Syncing..." : "Sync Leaderboard"}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Trophy className="w-4 h-4" />
+                      <span>
+                        {joiningLeaderboard ? "Joining..." : "Join Leaderboard"}
+                      </span>
+                    </>
+                  )}
                 </button>
               )}
 
-              {joinedLeaderboard && (
-                <Link
-                  href="/leaderboard"
-                  className="px-4 py-2 text-sm text-terminal bg-terminal/10 border border-terminal/30 rounded 
-                             hover:bg-terminal/20 transition-colors flex items-center gap-2"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>View Leaderboard</span>
-                </Link>
-              )}
+              <Link
+                href="/leaderboard"
+                className="px-4 py-2 text-sm text-terminal/60 border border-terminal/20 rounded 
+                           hover:bg-terminal/10 hover:text-terminal transition-colors flex items-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                <span>View Leaderboard</span>
+              </Link>
             </div>
           )}
         </div>

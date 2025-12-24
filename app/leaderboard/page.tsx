@@ -84,27 +84,28 @@ export default function LeaderboardPage() {
           {entries.map((entry, index) => {
             const medalColor = getMedalColor(index);
             return (
-              <div
+              <Link
                 key={entry.id}
+                href={`/${entry.username}`}
                 className={`grid grid-cols-12 gap-4 items-center p-3 rounded transition-colors
                   ${
                     index === 0
-                      ? "bg-[#ffd700]/10 border border-[#ffd700]/30"
+                      ? "bg-[#ffd700]/10 border border-[#ffd700]/30 hover:bg-[#ffd700]/20"
                       : ""
                   }
                   ${
                     index === 1
-                      ? "bg-[#c0c0c0]/10 border border-[#c0c0c0]/30"
+                      ? "bg-[#c0c0c0]/10 border border-[#c0c0c0]/30 hover:bg-[#c0c0c0]/20"
                       : ""
                   }
                   ${
                     index === 2
-                      ? "bg-[#cd7f32]/10 border border-[#cd7f32]/30"
+                      ? "bg-[#cd7f32]/10 border border-[#cd7f32]/30 hover:bg-[#cd7f32]/20"
                       : ""
                   }
                   ${
                     index > 2
-                      ? "bg-terminal-surface border border-terminal/10 hover:border-terminal/30"
+                      ? "bg-terminal-surface border border-terminal/10 hover:border-terminal/30 hover:bg-terminal/5"
                       : ""
                   }
                 `}
@@ -137,7 +138,7 @@ export default function LeaderboardPage() {
                     {entry.top_language}
                   </span>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

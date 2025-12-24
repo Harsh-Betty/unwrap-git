@@ -35,6 +35,22 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardResult> {
   }
 }
 
+export async function checkUserInLeaderboard(
+  username: string
+): Promise<{ exists: boolean }> {
+  try {
+    const { data } = await supabase
+      .from("leaderboard_stats")
+      .select("id")
+      .eq("username", username)
+      .single();
+
+    return { exists: !!data };
+  } catch {
+    return { exists: false };
+  }
+}
+
 export async function joinLeaderboard(
   stats: UserStats
 ): Promise<JoinLeaderboardResult> {

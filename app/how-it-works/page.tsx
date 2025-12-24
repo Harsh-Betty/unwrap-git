@@ -11,7 +11,6 @@ import {
   Palette,
   Trophy,
   Lock,
-  Wrench,
 } from "lucide-react";
 
 export const metadata = {
@@ -167,39 +166,6 @@ export default function HowItWorksPage() {
             </li>
           </ul>
         </section>
-
-        <section className="p-4 bg-terminal-surface border border-terminal/20 rounded">
-          <h2 className="text-lg text-terminal font-bold mb-3 flex items-center gap-2">
-            <Wrench className="w-5 h-5" />
-            Tech Stack
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              Next.js 15
-            </span>
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              React 19
-            </span>
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              TypeScript
-            </span>
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              Better Auth
-            </span>
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              Supabase
-            </span>
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              Recharts
-            </span>
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              React Three Fiber
-            </span>
-            <span className="px-2 py-1 bg-terminal/10 rounded text-center">
-              Tailwind CSS
-            </span>
-          </div>
-        </section>
       </div>
 
       <div className="mt-8 pt-6 border-t border-terminal/20 flex justify-between items-center">
@@ -209,14 +175,14 @@ export default function HowItWorksPage() {
         >
           View Leaderboard →
         </Link>
-        <a
+        {/* <a
           href="https://github.com"
           target="_blank"
           rel="noopener noreferrer"
           className="text-terminal/60 hover:text-terminal transition-colors"
         >
           View Source on GitHub →
-        </a>
+        </a> */}
       </div>
     </TerminalLayout>
   );

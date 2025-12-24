@@ -1,11 +1,16 @@
 "use client";
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 interface TerminalLayoutProps {
+  childClassName?: string;
   children: ReactNode;
 }
 
-export function TerminalLayout({ children }: TerminalLayoutProps) {
+export function TerminalLayout({
+  children,
+  childClassName,
+}: TerminalLayoutProps) {
   return (
     <div className="terminal-container min-h-screen bg-terminal-bg text-terminal font-mono relative overflow-hidden">
       <div className="scanlines pointer-events-none fixed inset-0 z-50" />
@@ -27,7 +32,12 @@ export function TerminalLayout({ children }: TerminalLayoutProps) {
           <div className="w-16" />
         </div>
 
-        <div className="terminal-content flex-1 p-6 overflow-auto">
+        <div
+          className={cn(
+            "terminal-content flex-1 p-6 overflow-auto",
+            childClassName
+          )}
+        >
           {children}
         </div>
       </div>

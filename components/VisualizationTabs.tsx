@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { ContributionWave } from "./charts/ContributionWave";
 import { LanguageChart } from "./charts/LanguageChart";
 import { ActivityCalendar } from "./charts/ActivityCalendar";
-import { BarChart3, Calendar, Dna, Mountain } from "lucide-react";
+import { BarChart3, Calendar, Dna, Mountain, Share2 } from "lucide-react";
 import type { UserStats } from "@/lib/github";
 
 // lazy load 3D components
@@ -42,11 +42,25 @@ const ContributionTerrain = dynamic(
   }
 );
 
+const StatCard = dynamic(
+  () => import("./StatCard").then((mod) => ({ default: mod.StatCard })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-64 bg-terminal-bg rounded-lg border border-terminal/20 flex items-center justify-center">
+        <div className="text-terminal/50 animate-pulse">
+          Loading Share Card...
+        </div>
+      </div>
+    ),
+  }
+);
+
 interface VisualizationTabsProps {
   stats: UserStats;
 }
 
-type TabId = "charts" | "calendar" | "helix" | "terrain";
+type TabId = "charts" | "calendar" | "helix" | "terrain" | "share";
 
 const TABS: {
   id: TabId;
@@ -57,6 +71,7 @@ const TABS: {
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "helix", label: "3D Helix", icon: Dna },
   { id: "terrain", label: "3D Terrain", icon: Mountain },
+  { id: "share", label: "Share", icon: Share2 },
 ];
 
 export function VisualizationTabs({ stats }: VisualizationTabsProps) {
@@ -110,6 +125,8 @@ export function VisualizationTabs({ stats }: VisualizationTabsProps) {
             username={stats.user.login}
           />
         )}
+
+        {activeTab === "share" && <StatCard stats={stats} />}
       </div>
     </div>
   );

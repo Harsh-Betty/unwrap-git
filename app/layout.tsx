@@ -9,20 +9,14 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GitHub Unwrapped 2025 | Your Year in Code",
+  title: "Unwrap Git | Visualize Your Year in Code",
   description:
-    "Discover your GitHub contribution stats for 2025. See your commits, PRs, top languages, and more in a retro terminal aesthetic.",
-  keywords: [
-    "GitHub",
-    "Wrapped",
-    "2025",
-    "contributions",
-    "developer",
-    "stats",
-  ],
+    "Transform your GitHub contributions into stunning 3D visualizations. Unwrap your coding year with beautiful terrain maps, commit analytics, and shareable wrapped summaries.",
+  keywords: ["GitHub", "Wrapped", "contributions", "developer", "stats"],
   openGraph: {
-    title: "GitHub Unwrapped 2025",
-    description: "Your Year in Code - Spotify Wrapped style for GitHub",
+    title: "Unwrap Git",
+    description:
+      "Transform your GitHub contributions into stunning 3D visualizations. Unwrap your coding year with beautiful terrain maps, commit analytics, and shareable wrapped summaries.",
     type: "website",
   },
 };

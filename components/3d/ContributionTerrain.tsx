@@ -1,5 +1,5 @@
 "use client";
-import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
+import { Canvas, useFrame, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Stars, Html } from "@react-three/drei";
 import { useMemo, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
@@ -26,7 +26,7 @@ function TerrainMesh({
   const wireframeRef = useRef<THREE.LineSegments>(null);
 
   // Organize calendar data into weeks grid
-  const { weeks, sorted, maxCount } = useMemo(() => {
+  const { weeks, maxCount } = useMemo(() => {
     const sorted = [...calendar].sort((a, b) => a.date.localeCompare(b.date));
     const maxCount = Math.max(...sorted.map((d) => d.count), 1);
 
@@ -51,11 +51,11 @@ function TerrainMesh({
       weeks.push(currentWeek);
     }
 
-    return { weeks, sorted, maxCount };
+    return { weeks, maxCount };
   }, [calendar]);
 
   // Create smooth terrain geometry with higher subdivision
-  const { geometry, colorAttribute, wireframeGeometry } = useMemo(() => {
+  const { geometry, wireframeGeometry } = useMemo(() => {
     const weekCount = weeks.length;
 
     // Higher subdivision for smoother surface (multiply segments)
@@ -146,7 +146,6 @@ function TerrainMesh({
 
     return {
       geometry: geo,
-      colorAttribute: colorAttr,
       wireframeGeometry: wireGeo,
     };
   }, [weeks, maxCount]);

@@ -1,6 +1,7 @@
 "use client";
 import { useLogStore, type LogEntry } from "@/lib/log-store";
 import { useEffect, useState } from "react";
+import { Check, X, Loader2 } from "lucide-react";
 
 function LogLine({ log, index }: { log: LogEntry; index: number }) {
   const [visible, setVisible] = useState(false);
@@ -28,9 +29,9 @@ function LogLine({ log, index }: { log: LogEntry; index: number }) {
   }, [visible, log.message]);
 
   const statusIcon = {
-    pending: <span className="text-yellow-400 animate-pulse">[...]</span>,
-    done: <span className="text-terminal">[✓]</span>,
-    error: <span className="text-red-500">[✗]</span>,
+    pending: <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />,
+    done: <Check className="w-4 h-4 text-terminal" />,
+    error: <X className="w-4 h-4 text-red-500" />,
   };
 
   if (!visible) return null;

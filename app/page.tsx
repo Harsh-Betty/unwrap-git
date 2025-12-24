@@ -136,7 +136,7 @@ export default function Home() {
         setLoading(false);
       });
     },
-    [session, addLog, updateLog, clearLogs, setLoading]
+    [session, addLog, updateLog, clearLogs, setLoading, setStoreStats]
   );
 
   // auto-search when user logs in
@@ -214,7 +214,7 @@ export default function Home() {
             onSubmit={handleSearch}
             disabled={isPending}
             placeholder="Enter GitHub username..."
-            prompt={isPending ? "⏳" : ">"}
+            prompt={isPending ? "..." : ">"}
           />
         </div>
       )}

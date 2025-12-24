@@ -43,13 +43,12 @@ export default function UserPage() {
     return (
       <TerminalLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-32 h-32 mb-4">
-            <LottieAnimation
-              src="/animations/coding.lottie"
-              loop={true}
-              autoplay={true}
-            />
-          </div>
+          <LottieAnimation
+            src="/animations/coding.lottie"
+            loop={true}
+            autoplay={true}
+            className="sm:w-auto sm:h-96"
+          />
           <p className="text-terminal/60 font-mono animate-pulse">
             Fetching stats for @{username}...
           </p>

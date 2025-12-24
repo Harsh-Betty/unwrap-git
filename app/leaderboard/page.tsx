@@ -5,6 +5,7 @@ import { getLeaderboard, type LeaderboardResult } from "./actions";
 import type { LeaderboardEntry } from "@/lib/supabase";
 import Link from "next/link";
 import { Trophy, Medal } from "lucide-react";
+import { LottieAnimation } from "@/components/ui/LottieAnimation";
 
 export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -35,7 +36,7 @@ export default function LeaderboardPage() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl text-terminal font-bold flex items-center gap-2">
             <Trophy className="w-6 h-6" />
-            Global Leaderboard
+            Leaderboard
           </h1>
           <Link
             href="/"
@@ -51,7 +52,13 @@ export default function LeaderboardPage() {
       </div>
 
       {isPending && (
-        <div className="text-terminal/50 animate-pulse">
+        <div className="text-terminal/50 animate-pulse flex flex-col items-center justify-center">
+          <LottieAnimation
+            src="/animations/git-octocat.lottie"
+            loop={true}
+            autoplay={true}
+            className="sm:w-auto sm:h-96"
+          />
           Loading leaderboard...
         </div>
       )}
@@ -63,7 +70,13 @@ export default function LeaderboardPage() {
       )}
 
       {!isPending && entries.length === 0 && !error && (
-        <div className="text-terminal/50 p-8 text-center border border-terminal/20 rounded">
+        <div className="text-terminal/50 p-8 flex items-center justify-center flex-col text-center border border-terminal/20 rounded">
+          <LottieAnimation
+            src="/animations/cat.lottie"
+            loop={true}
+            autoplay={true}
+            className="sm:w-auto sm:h-96"
+          />
           <p className="text-lg mb-2">No entries yet!</p>
           <p className="text-sm">Be the first to join the leaderboard.</p>
         </div>

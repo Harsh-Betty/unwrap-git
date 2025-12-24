@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { ContributionWave } from "./charts/ContributionWave";
 import { LanguageChart } from "./charts/LanguageChart";
 import { ActivityCalendar } from "./charts/ActivityCalendar";
-import { BarChart3, Calendar, Dna, Mountain, Share2 } from "lucide-react";
+import { BarChart3, Calendar, Dna, Mountain, CreditCard } from "lucide-react";
+import { StatCardModal } from "./StatCardModal";
 import type { UserStats } from "@/lib/github";
 
 // lazy load 3D components
@@ -42,25 +43,11 @@ const ContributionTerrain = dynamic(
   }
 );
 
-const StatCard = dynamic(
-  () => import("./StatCard").then((mod) => ({ default: mod.StatCard })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-64 bg-terminal-bg rounded-lg border border-terminal/20 flex items-center justify-center">
-        <div className="text-terminal/50 animate-pulse">
-          Loading Share Card...
-        </div>
-      </div>
-    ),
-  }
-);
-
 interface VisualizationTabsProps {
   stats: UserStats;
 }
 
-type TabId = "charts" | "calendar" | "helix" | "terrain" | "share";
+type TabId = "charts" | "calendar" | "helix" | "terrain";
 
 const TABS: {
   id: TabId;
@@ -71,33 +58,43 @@ const TABS: {
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "helix", label: "3D Helix", icon: Dna },
   { id: "terrain", label: "3D Terrain", icon: Mountain },
-  { id: "share", label: "Share", icon: Share2 },
 ];
 
 export function VisualizationTabs({ stats }: VisualizationTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("charts");
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
 
   return (
     <div className="mt-6">
-      <div className="flex border-b border-terminal/20 mb-4">
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm transition-colors cursor-pointer flex items-center gap-2
-                ${
-                  activeTab === tab.id
-                    ? "text-terminal border-b-2 border-terminal -mb-px"
-                    : "text-terminal/40 hover:text-terminal/70"
-                }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+      <div className="flex items-center justify-between border-b border-terminal/20 mb-4">
+        <div className="flex">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 text-sm transition-colors cursor-pointer flex items-center gap-2
+                  ${
+                    activeTab === tab.id
+                      ? "text-terminal border-b-2 border-terminal -mb-px"
+                      : "text-terminal/40 hover:text-terminal/70"
+                  }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => setIsCardModalOpen(true)}
+          className="px-3 py-1.5 text-sm bg-terminal/10 hover:bg-terminal/20 border border-terminal/30 rounded text-terminal transition-colors cursor-pointer flex items-center gap-2"
+        >
+          <CreditCard className="w-4 h-4" />
+          <span>Generate Card</span>
+        </button>
       </div>
 
       <div className="space-y-4">
@@ -125,9 +122,13 @@ export function VisualizationTabs({ stats }: VisualizationTabsProps) {
             username={stats.user.login}
           />
         )}
-
-        {activeTab === "share" && <StatCard stats={stats} />}
       </div>
+
+      <StatCardModal
+        stats={stats}
+        isOpen={isCardModalOpen}
+        onClose={() => setIsCardModalOpen(false)}
+      />
     </div>
   );
 }

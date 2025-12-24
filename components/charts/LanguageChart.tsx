@@ -56,8 +56,15 @@ export function LanguageChart({ languages }: LanguageChartProps) {
                   backgroundColor: "#0a0806",
                   border: "1px solid #ffb000",
                   borderRadius: "4px",
-                  color: "#ffb000",
                   fontSize: "12px",
+                  padding: "8px 12px",
+                }}
+                itemStyle={{
+                  color: "#ffb000",
+                }}
+                labelStyle={{
+                  color: "#ffb000",
+                  marginBottom: "4px",
                 }}
                 formatter={(value?: number, name?: string) => [
                   `${value} commits`,

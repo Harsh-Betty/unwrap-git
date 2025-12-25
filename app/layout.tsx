@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -28,7 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`dark ${jetbrainsMono.variable}`}>
-      <body className="font-mono antialiased">{children}</body>
+      <body className="font-mono antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

@@ -85,7 +85,11 @@ function getRankBadge(commits: number): string {
   return "Rising Star";
 }
 
-export function StatCardModal({ stats, isOpen, onClose }: StatCardModalProps) {
+export function StatCardModal({
+  stats,
+  isOpen,
+  onClose,
+}: Readonly<StatCardModalProps>) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -190,7 +194,7 @@ export function StatCardModal({ stats, isOpen, onClose }: StatCardModalProps) {
                 />
                 <div>
                   <h3 className="text-lg font-bold text-white leading-tight">
-                    {stats.user.name || stats.user.login}
+                    {stats.user.name ?? stats.user.login}
                   </h3>
                   <p className="text-terminal/70 font-mono text-xs">
                     @{stats.user.login}

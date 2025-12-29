@@ -60,13 +60,13 @@ const TABS: {
   { id: "terrain", label: "3D Terrain", icon: Mountain },
 ];
 
-export function VisualizationTabs({ stats }: VisualizationTabsProps) {
+export function VisualizationTabs({ stats }: Readonly<VisualizationTabsProps>) {
   const [activeTab, setActiveTab] = useState<TabId>("charts");
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between border-b border-terminal/20 mb-4">
+      <div className="flex items-center justify-between border-b border-terminal/20 mb-4 overflow-x-auto">
         <div className="flex">
           {TABS.map((tab) => {
             const Icon = tab.icon;

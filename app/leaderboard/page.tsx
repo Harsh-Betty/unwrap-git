@@ -18,7 +18,7 @@ export default function LeaderboardPage() {
       if (result.success && result.data) {
         setEntries(result.data);
       } else {
-        setError(result.error || "Failed to load leaderboard");
+        setError(result.error ?? "Failed to load leaderboard");
       }
     });
   }, []);
@@ -100,7 +100,7 @@ export default function LeaderboardPage() {
               <Link
                 key={entry.id}
                 href={`/${entry.username}`}
-                className={`grid grid-cols-12 gap-4 items-center p-3 rounded transition-colors
+                className={`grid grid-cols-12 gap-4 items-center p-3 rounded transition-colors overflow-x-auto
                   ${
                     index === 0
                       ? "bg-[#ffd700]/10 border border-[#ffd700]/30 hover:bg-[#ffd700]/20"

@@ -24,26 +24,13 @@ function createClient(auth: string | undefined): Octokit {
   return new Octokit({
     auth,
     retry: { enabled: true },
-    throttle: {
-      onRateLimit: (
-        _retryAfter: number,
-        options: { method: string; url: string; request: { retryCount: number } }
-      ) => {
-        console.warn(`Rate limit hit for ${options.method} ${options.url}`);
-        // One quick retry at most: a page render should fail fast instead of
-        // waiting for the hourly window to reset.
-        return options.request.retryCount < 1 && _retryAfter <= 5;
-      },
-      onSecondaryRateLimit: (
-        _retryAfter: number,
-        options: { method: string; url: string }
-      ) => {
-        console.warn(
-          `Secondary rate limit hit for ${options.method} ${options.url}`
-        );
-        return false;
-      },
-    },
+    // The throttling plugin sends GraphQL requests one per second through a
+    // queue shared by every visitor on the instance. That serialised the
+    // parallel commit-sample requests (the later ones timed out while still
+    // queued) and made concurrent visitors wait on each other. Requests are
+    // already limited per visitor by our own rate limiter, and rate-limit
+    // responses from GitHub are turned into GitHubRateLimitError below.
+    throttle: { enabled: false },
   });
 }
 

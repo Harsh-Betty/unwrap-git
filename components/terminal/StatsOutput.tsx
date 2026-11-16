@@ -32,18 +32,18 @@ function CollapsibleSection({
         className="w-full flex items-center gap-2 py-2 px-4 hover:bg-terminal/5 
                    transition-colors text-left cursor-pointer group"
       >
-        <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/30 border-r border-terminal/10 mr-4">
+        <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/60 border-r border-terminal/10 mr-4">
           {lineStart}
         </span>
         {collapsed ? (
-          <ChevronRight className="w-4 h-4 text-terminal/50" />
+          <ChevronRight className="w-4 h-4 text-terminal/70" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-terminal/50" />
+          <ChevronDown className="w-4 h-4 text-terminal/70" />
         )}
         <span className="text-cyan-400">&quot;{title}&quot;</span>
         <span className="text-white">:</span>
         {collapsed && (
-          <span className="text-terminal/40 text-xs ml-2">
+          <span className="text-terminal/70 text-xs ml-2">
             [{lines.length} lines...]
           </span>
         )}
@@ -53,7 +53,7 @@ function CollapsibleSection({
           <code>
             {lines.map((line, i) => (
               <div key={i} className="flex hover:bg-terminal/5 group">
-                <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/30 border-r border-terminal/10 mr-4">
+                <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/60 border-r border-terminal/10 mr-4">
                   {lineStart + i + 1}
                 </span>
                 <span className="text-terminal/90 whitespace-pre pl-4">
@@ -103,16 +103,26 @@ export function StatsOutput({ stats, error }: StatsOutputProps) {
 
   if (!stats) return null;
 
-  const userLines = JSON.stringify(stats.user, null, 2).split("\n").length;
-  const contribLines = JSON.stringify(stats.contributions, null, 2).split(
-    "\n"
-  ).length;
-  const calendarLines = JSON.stringify(stats.calendar, null, 2).split(
-    "\n"
-  ).length;
-  const langLines = JSON.stringify(stats.languages, null, 2).split("\n").length;
-
-  let lineCounter = 2;
+  // The day-by-day calendar is left out: it is already drawn in the
+  // Calendar tab and would be hundreds of lines here.
+  const sections: { title: string; data: unknown; collapsed?: boolean }[] = [
+    { title: "user", data: stats.user },
+    { title: "contributions", data: stats.contributions },
+    { title: "languages", data: stats.languages },
+    { title: "repos", data: stats.repos, collapsed: true },
+    { title: "topRepos", data: stats.topRepos, collapsed: true },
+  ];
+  const starts = sections.reduce<number[]>(
+    (acc, section, i) => [
+      ...acc,
+      i === 0
+        ? 2
+        : acc[i - 1] +
+          JSON.stringify(sections[i - 1].data, null, 2).split("\n").length +
+          1,
+    ],
+    []
+  );
 
   return (
     <div
@@ -128,56 +138,31 @@ export function StatsOutput({ stats, error }: StatsOutputProps) {
               Stats for @{stats.user.login}
             </span>
           </div>
-          <span className="text-terminal/40 text-xs">
+          <span className="text-terminal/70 text-xs">
             {stats.contributions.total.toLocaleString()} contributions in{" "}
             {stats.year}
           </span>
         </div>
 
         <div className="flex hover:bg-terminal/5 px-4 py-1">
-          <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/30 border-r border-terminal/10 mr-4">
+          <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/60 border-r border-terminal/10 mr-4">
             1
           </span>
           <span className="text-terminal/90">{"{"}</span>
         </div>
 
-        <CollapsibleSection
-          title="user"
-          data={stats.user}
-          lineStart={lineCounter}
-        />
-        {(lineCounter += userLines + 1)}
-
-        <CollapsibleSection
-          title="contributions"
-          data={stats.contributions}
-          lineStart={lineCounter}
-        />
-        {(lineCounter += contribLines + 1)}
-
-        <CollapsibleSection
-          title="calendar"
-          data={stats.calendar}
-          defaultCollapsed={true}
-          lineStart={lineCounter}
-        />
-        {(lineCounter += calendarLines + 1)}
-
-        <CollapsibleSection
-          title="languages"
-          data={stats.languages}
-          lineStart={lineCounter}
-        />
-        {(lineCounter += langLines + 1)}
-
-        <CollapsibleSection
-          title="topRepos"
-          data={stats.topRepos}
-          lineStart={lineCounter}
-        />
+        {sections.map((section, i) => (
+          <CollapsibleSection
+            key={section.title}
+            title={section.title}
+            data={section.data}
+            defaultCollapsed={section.collapsed}
+            lineStart={starts[i]}
+          />
+        ))}
 
         <div className="flex hover:bg-terminal/5 px-4 py-1">
-          <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/30 border-r border-terminal/10 mr-4">
+          <span className="select-none w-10 shrink-0 text-right pr-4 text-terminal/60 border-r border-terminal/10 mr-4">
             ~
           </span>
           <span className="text-terminal/90">{"}"}</span>

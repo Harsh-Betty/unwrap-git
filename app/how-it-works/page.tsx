@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "How It Works | GitHub Unwrapped 2025",
+  title: "How It Works | GitHub Unwrapped",
   description:
     "Learn how GitHub Unwrapped calculates your contribution stats and insights.",
 };
@@ -59,8 +59,9 @@ export default function HowItWorksPage() {
             fetched.
           </p>
           <p className="text-sm text-terminal/50">
-            <strong>Private Mode:</strong> When you sign in, we use your OAuth
-            token to include private repos.
+            <strong>Signed in:</strong> Your own stats also count your private
+            contributions. Private repository names and languages stay
+            hidden, because we only ask for the <code>read:user</code> scope.
           </p>
         </section>
 
@@ -78,7 +79,7 @@ export default function HowItWorksPage() {
               </h3>
               <p className="text-terminal/60">
                 Consecutive days with at least 1 contribution. We track both
-                your current streak and your longest streak of 2025.
+                your current streak and your longest streak of the selected year.
               </p>
             </div>
 
@@ -88,7 +89,7 @@ export default function HowItWorksPage() {
                 Dedication Score
               </h3>
               <p className="text-terminal/60">
-                Percentage of days in 2025 where you made at least one
+                Percentage of days in the selected year where you made at least one
                 contribution.
                 <br />
                 <code className="text-terminal/80">
@@ -126,7 +127,7 @@ export default function HowItWorksPage() {
               </h3>
               <p className="text-terminal/60">
                 Awarded if you&apos;ve used 5 or more programming languages in
-                2025.
+                the selected year.
               </p>
             </div>
           </div>
@@ -155,10 +156,11 @@ export default function HowItWorksPage() {
           </h2>
           <ul className="space-y-2 text-sm text-terminal/60">
             <li>
-              • We <strong>never</strong> store your GitHub access token
-              permanently
+              • Your GitHub access token is stored encrypted and only used to
+              load your own stats
             </li>
-            <li>• Stats are cached for 1 hour to reduce API calls</li>
+            <li>• Stats are cached to reduce API calls: 2 hours for the current
+              year, 14 days for past years</li>
             <li>• Leaderboard data can be deleted at any time</li>
             <li>
               • We only request{" "}

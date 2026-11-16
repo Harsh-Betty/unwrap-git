@@ -100,13 +100,16 @@ export function VisualizationTabs({ stats }: Readonly<VisualizationTabsProps>) {
       <div className="space-y-4">
         {activeTab === "charts" && (
           <>
-            <ContributionWave data={stats.insights.weeklyData} />
+            <ContributionWave
+              data={stats.insights.weeklyData}
+              year={stats.year}
+            />
             <LanguageChart languages={stats.languages} />
           </>
         )}
 
         {activeTab === "calendar" && (
-          <ActivityCalendar calendar={stats.calendar} />
+          <ActivityCalendar calendar={stats.calendar} year={stats.year} />
         )}
 
         {activeTab === "helix" && (

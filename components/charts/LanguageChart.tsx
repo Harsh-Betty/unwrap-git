@@ -6,6 +6,7 @@ interface LanguageChartProps {
     name: string;
     color: string;
     commitCount: number;
+    share: number;
   }[];
 }
 
@@ -13,13 +14,12 @@ export function LanguageChart({ languages }: LanguageChartProps) {
   if (!languages || languages.length === 0) return null;
 
   const topLangs = languages.slice(0, 6);
-  const totalCommits = topLangs.reduce((sum, l) => sum + l.commitCount, 0);
 
   const data = topLangs.map((lang) => ({
     name: lang.name,
     value: lang.commitCount,
     color: lang.color || "#ffb000",
-    percentage: Math.round((lang.commitCount / totalCommits) * 100),
+    percentage: Math.round(lang.share * 100),
   }));
 
   return (
@@ -67,7 +67,7 @@ export function LanguageChart({ languages }: LanguageChartProps) {
                   marginBottom: "4px",
                 }}
                 formatter={(value, name) => [
-                  `${value} commits`,
+                  `~${value} commits`,
                   name,
                 ]}
               />

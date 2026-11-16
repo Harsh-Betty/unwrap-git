@@ -1,6 +1,6 @@
 "use client";
 import type { UserStats } from "@/lib/github";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface StatsOutputProps {
@@ -123,13 +123,14 @@ export function StatsOutput({ stats, error }: StatsOutputProps) {
       <div className="bg-terminal-surface border border-terminal/20 rounded overflow-hidden shadow-[0_0_40px_rgba(255,176,0,0.1)]">
         <div className="flex items-center justify-between px-4 py-2 bg-terminal-bg border-b border-terminal/20">
           <div className="flex items-center gap-2">
-            <span className="text-terminal text-lg">✓</span>
+            <Check className="w-4 h-4 text-terminal" aria-hidden="true" />
             <span className="text-terminal/80 text-sm uppercase tracking-wider font-bold">
               Stats for @{stats.user.login}
             </span>
           </div>
           <span className="text-terminal/40 text-xs">
-            {stats.contributions.total} contributions in 2025
+            {stats.contributions.total.toLocaleString()} contributions in{" "}
+            {stats.year}
           </span>
         </div>
 

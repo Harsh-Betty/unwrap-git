@@ -33,8 +33,7 @@ function TerrainMesh({
     const weeks: { date: string; count: number }[][] = [];
     let currentWeek: { date: string; count: number }[] = [];
 
-    const firstDate = new Date(sorted[0]?.date || "2025-01-01");
-    const startDayOfWeek = firstDate.getDay();
+    const startDayOfWeek = sorted[0]?.weekday ?? 0;
     for (let i = 0; i < startDayOfWeek; i++) {
       currentWeek.push({ date: "", count: 0 });
     }

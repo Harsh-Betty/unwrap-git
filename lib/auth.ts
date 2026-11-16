@@ -1,8 +1,12 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 
-const pool = new Pool({
+// Shared with the leaderboard queries. Kept small because every serverless
+// instance opens its own pool against the Supabase pooler.
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: 3,
+  idleTimeoutMillis: 10_000,
 });
 
 export const auth = betterAuth({
@@ -19,9 +23,19 @@ export const auth = betterAuth({
       }),
     },
   },
+  account: {
+    // GitHub tokens are encrypted at rest. Rows written before this was
+    // enabled are still readable and get encrypted on the next sign-in.
+    encryptOAuthTokens: true,
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+    // Signed cookie copy of the session, so most requests skip the database.
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
   },
 });
 

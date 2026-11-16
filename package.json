@@ -1,6 +1,14 @@
 {
   "name": "unwrap-git",
-  "version": "0.1.0",
+  "version": "2.0.0",
+  "description": "GitHub Wrapped for any year: contributions, languages, streaks and commit habits for any GitHub user.",
+  "license": "MIT",
+  "author": "Harshvardhan Singh (https://github.com/Harsh-Betty)",
+  "homepage": "https://unwrap-git.hrshvrdhn.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Harsh-Betty/unwrap-git.git"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -42,9 +42,9 @@ export function CommitClock({ sample }: { sample: CommitSample }) {
       aria-labelledby="commit-clock-title"
       className="p-4 bg-terminal-bg rounded border border-terminal/15"
     >
-      <h3 id="commit-clock-title" className="text-terminal font-bold">
+      <h2 id="commit-clock-title" className="text-terminal font-bold">
         When you commit
-      </h3>
+      </h2>
       <p className="text-terminal/70 text-sm mt-1">
         Busiest hour: <strong className="text-terminal">{formatHour(peakHour)}</strong>
         . Busiest slot:{" "}

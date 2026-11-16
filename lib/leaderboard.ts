@@ -157,3 +157,34 @@ export async function setHiddenFromLeaderboard(
     );
   }
 }
+
+export interface SitemapProfile {
+  username: string;
+  year: number;
+  updatedAt: Date;
+}
+
+// Profiles worth listing in the sitemap: the most active visible users of
+// each year. Capped so the sitemap stays small and cheap to build.
+export async function getSitemapProfiles(
+  perYear = 200
+): Promise<SitemapProfile[]> {
+  const { rows } = await pool.query(
+    `select username, year, updated_at from (
+       select username, year, updated_at,
+              row_number() over (
+                partition by year order by total_contributions desc
+              ) as position
+       from public.leaderboard_stats
+       where not hidden and total_contributions > 0
+     ) ranked
+     where position <= $1
+     order by year desc, position`,
+    [perYear]
+  );
+  return rows.map((row) => ({
+    username: row.username,
+    year: row.year,
+    updatedAt: row.updated_at,
+  }));
+}

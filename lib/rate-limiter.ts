@@ -1,5 +1,5 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { KEY_PREFIX, redis } from "./redis";
+import { KEY_PREFIX, markRedisDown, redis, redisAvailable } from "./redis";
 
 const MAX_REQUESTS = 10;
 const WINDOW_SECONDS = 60;
@@ -63,7 +63,7 @@ function checkMemoryRateLimit(identifier: string): RateLimitResult {
 export async function checkRateLimit(
   identifier: string
 ): Promise<RateLimitResult> {
-  if (!ratelimit) return checkMemoryRateLimit(identifier);
+  if (!ratelimit || !redisAvailable()) return checkMemoryRateLimit(identifier);
 
   try {
     const result = await ratelimit.limit(identifier);
@@ -75,7 +75,7 @@ export async function checkRateLimit(
         : Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)),
     };
   } catch (error) {
-    console.error("Rate limiter unavailable, using memory:", error);
+    markRedisDown("Rate limit check", error);
     return checkMemoryRateLimit(identifier);
   }
 }

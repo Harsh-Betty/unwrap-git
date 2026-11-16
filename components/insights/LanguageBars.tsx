@@ -26,9 +26,9 @@ export function LanguageBars({
       aria-labelledby="languages-title"
       className="p-4 bg-terminal-bg rounded border border-terminal/15"
     >
-      <h3 id="languages-title" className="text-terminal font-bold">
+      <h2 id="languages-title" className="text-terminal font-bold">
         Languages
-      </h3>
+      </h2>
       {rows.length === 0 ? (
         <p className="mt-2 text-sm text-terminal/70">
           No commits in public repositories to read languages from.

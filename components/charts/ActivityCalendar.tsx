@@ -98,7 +98,7 @@ export function ActivityCalendar({ calendar, year }: ActivityCalendarProps) {
               x={30 + weekIndex * (cellSize + cellGap)}
               y={12}
               fontSize={10}
-              fill="#ffb00060"
+              fill="#ffb000b3"
             >
               {month}
             </text>
@@ -110,7 +110,7 @@ export function ActivityCalendar({ calendar, year }: ActivityCalendarProps) {
               x={0}
               y={30 + i * (cellSize + cellGap) + cellSize - 2}
               fontSize={9}
-              fill="#ffb00040"
+              fill="#ffb000b3"
             >
               {day}
             </text>
@@ -160,7 +160,7 @@ export function ActivityCalendar({ calendar, year }: ActivityCalendarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2 mt-4 text-xs text-terminal/40">
+      <div className="flex items-center gap-2 mt-4 text-xs text-terminal/70">
         <span>Less</span>
         {[0, 3, 6, 9, 12].map((count) => (
           <div

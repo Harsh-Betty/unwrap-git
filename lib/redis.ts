@@ -22,3 +22,21 @@ export const redis: Redis | null =
 // the same database.
 export const KEY_PREFIX =
   process.env.NODE_ENV === "production" ? "unwrap-git" : "unwrap-git:dev";
+
+// Circuit breaker shared by the cache and the rate limiter: after a Redis
+// failure, skip it for a minute, so an outage costs one slow request per
+// instance instead of every request.
+const RETRY_AFTER_MS = 60_000;
+let redisDownUntil = 0;
+
+export function redisAvailable(): boolean {
+  return redis !== null && Date.now() >= redisDownUntil;
+}
+
+export function markRedisDown(action: string, error: unknown): void {
+  redisDownUntil = Date.now() + RETRY_AFTER_MS;
+  console.error(
+    `${action} failed, skipping Redis for ${RETRY_AFTER_MS / 1000}s:`,
+    error instanceof Error ? error.message : error
+  );
+}

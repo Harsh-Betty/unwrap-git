@@ -1,3 +1,9 @@
+export interface CalendarDay {
+  date: string; // YYYY-MM-DD
+  count: number;
+  weekday: number; // 0 = Sunday
+}
+
 export interface Insights {
   mostProductiveDay: {
     day: string;
@@ -5,12 +11,21 @@ export interface Insights {
     count: number;
   };
   longestStreak: number;
+  // Streak ending on the last day of the range. Only meaningful while the
+  // year is still in progress.
   currentStreak: number;
+  // Longest run of days without a single contribution.
+  longestBreak: number;
   totalContributionDays: number;
+  totalDays: number;
   averagePerDay: number;
   busiestMonth: {
     month: string;
     monthIndex: number;
+    count: number;
+  };
+  busiestWeek: {
+    start: string;
     count: number;
   };
   weekendWarrior: number;
@@ -26,8 +41,11 @@ export interface Insights {
   }[];
   weeklyData: {
     week: number;
+    start: string;
     count: number;
   }[];
+  // Contributions per quarter, Q1 to Q4.
+  quarters: number[];
 }
 
 const DAY_NAMES = [
@@ -54,142 +72,144 @@ const MONTH_NAMES = [
   "December",
 ];
 
-export function computeInsights(
-  calendar: { date: string; count: number; weekday: number }[]
-): Insights {
-  if (calendar.length === 0) {
-    return {
-      mostProductiveDay: { day: "N/A", dayIndex: 0, count: 0 },
-      longestStreak: 0,
-      currentStreak: 0,
-      totalContributionDays: 0,
-      averagePerDay: 0,
-      busiestMonth: { month: "N/A", monthIndex: 0, count: 0 },
-      weekendWarrior: 0,
-      codeDedication: 0,
-      peakDay: { date: "", count: 0 },
-      monthlyData: [],
-      weeklyData: [],
-    };
+const EMPTY_INSIGHTS: Insights = {
+  mostProductiveDay: { day: "N/A", dayIndex: 0, count: 0 },
+  longestStreak: 0,
+  currentStreak: 0,
+  longestBreak: 0,
+  totalContributionDays: 0,
+  totalDays: 0,
+  averagePerDay: 0,
+  busiestMonth: { month: "N/A", monthIndex: 0, count: 0 },
+  busiestWeek: { start: "", count: 0 },
+  weekendWarrior: 0,
+  codeDedication: 0,
+  peakDay: { date: "", count: 0 },
+  monthlyData: [],
+  weeklyData: [],
+  quarters: [0, 0, 0, 0],
+};
+
+function maxBy<T>(items: T[], score: (item: T) => number): T | undefined {
+  return items.reduce<T | undefined>(
+    (best, item) =>
+      best === undefined || score(item) > score(best) ? item : best,
+    undefined
+  );
+}
+
+// Longest run of consecutive days matching the predicate.
+function longestRun(
+  days: CalendarDay[],
+  matches: (day: CalendarDay) => boolean
+): number {
+  let longest = 0;
+  let run = 0;
+  for (const day of days) {
+    run = matches(day) ? run + 1 : 0;
+    if (run > longest) longest = run;
   }
+  return longest;
+}
+
+export function computeInsights(calendar: CalendarDay[]): Insights {
+  if (calendar.length === 0) return EMPTY_INSIGHTS;
 
   const sorted = [...calendar].sort((a, b) => a.date.localeCompare(b.date));
+  const total = sorted.reduce((sum, day) => sum + day.count, 0);
+  const activeDays = sorted.filter((day) => day.count > 0).length;
 
-  const dayTotals = new Array(7).fill(0);
-  let totalContributions = 0;
-  let totalContributionDays = 0;
-  let weekendContributions = 0;
-  let peakDay = { date: "", count: 0 };
+  const dayTotals = DAY_NAMES.map((_, index) =>
+    sorted
+      .filter((day) => day.weekday === index)
+      .reduce((sum, day) => sum + day.count, 0)
+  );
+  const topDayIndex = dayTotals.indexOf(Math.max(...dayTotals));
 
+  const monthTotals = MONTH_NAMES.map(() => 0);
+  const monthsSeen = new Set<number>();
   for (const day of sorted) {
-    dayTotals[day.weekday] += day.count;
-    totalContributions += day.count;
-    if (day.count > 0) totalContributionDays++;
-    if (day.weekday === 0 || day.weekday === 6) {
-      weekendContributions += day.count;
-    }
-    if (day.count > peakDay.count) {
-      peakDay = { date: day.date, count: day.count };
-    }
+    const monthIndex = Number(day.date.slice(5, 7)) - 1;
+    monthTotals[monthIndex] += day.count;
+    monthsSeen.add(monthIndex);
   }
+  const monthlyData = [...monthsSeen]
+    .sort((a, b) => a - b)
+    .map((monthIndex) => ({
+      month: MONTH_NAMES[monthIndex],
+      monthIndex,
+      count: monthTotals[monthIndex],
+    }));
+  const busiestMonth =
+    maxBy(
+      monthlyData.filter((month) => month.count > 0),
+      (month) => month.count
+    ) ?? EMPTY_INSIGHTS.busiestMonth;
 
-  const maxDayIndex = dayTotals.indexOf(Math.max(...dayTotals));
-  const mostProductiveDay = {
-    day: DAY_NAMES[maxDayIndex],
-    dayIndex: maxDayIndex,
-    count: dayTotals[maxDayIndex],
-  };
-
-  const monthTotals = new Map<string, number>();
+  // Weeks run Sunday to Saturday like the GitHub calendar, so the first and
+  // last week of a year can be partial.
+  const weeklyData: Insights["weeklyData"] = [];
   for (const day of sorted) {
-    const month = day.date.slice(0, 7);
-    monthTotals.set(month, (monthTotals.get(month) || 0) + day.count);
-  }
-
-  let busiestMonth = { month: "N/A", monthIndex: 0, count: 0 };
-  const monthlyData: { month: string; monthIndex: number; count: number }[] =
-    [];
-
-  for (const [month, count] of monthTotals) {
-    const monthIndex = parseInt(month.slice(5, 7)) - 1;
-    const monthName = MONTH_NAMES[monthIndex];
-    monthlyData.push({ month: monthName, monthIndex, count });
-    if (count > busiestMonth.count) {
-      busiestMonth = { month: monthName, monthIndex, count };
-    }
-  }
-  monthlyData.sort((a, b) => a.monthIndex - b.monthIndex);
-
-  const weeklyData: { week: number; count: number }[] = [];
-  let weekCount = 0;
-  let currentWeek = 0;
-
-  for (let i = 0; i < sorted.length; i++) {
-    const weekNum = Math.floor(i / 7);
-    if (weekNum !== currentWeek) {
-      weeklyData.push({ week: currentWeek + 1, count: weekCount });
-      weekCount = 0;
-      currentWeek = weekNum;
-    }
-    weekCount += sorted[i].count;
-  }
-  if (weekCount > 0) {
-    weeklyData.push({ week: currentWeek + 1, count: weekCount });
-  }
-
-  let longestStreak = 0;
-  let currentStreak = 0;
-  let tempStreak = 0;
-
-  for (const day of sorted) {
-    if (day.count > 0) {
-      tempStreak++;
-      longestStreak = Math.max(longestStreak, tempStreak);
+    const last = weeklyData[weeklyData.length - 1];
+    if (!last || day.weekday === 0) {
+      weeklyData.push({
+        week: weeklyData.length + 1,
+        start: day.date,
+        count: day.count,
+      });
     } else {
-      tempStreak = 0;
+      last.count += day.count;
     }
   }
+  const topWeek = maxBy(weeklyData, (week) => week.count);
 
-  for (let i = sorted.length - 1; i >= 0; i--) {
-    if (sorted[i].count > 0) {
-      currentStreak++;
-    } else {
-      break;
-    }
-  }
+  const peak = maxBy(sorted, (day) => day.count);
 
-  const averagePerDay =
-    sorted.length > 0
-      ? Math.round((totalContributions / sorted.length) * 10) / 10
-      : 0;
+  const lastGapIndex = sorted.findLastIndex((day) => day.count === 0);
+  const currentStreak = sorted.length - 1 - lastGapIndex;
 
-  const weekendWarrior =
-    totalContributions > 0
-      ? Math.round((weekendContributions / totalContributions) * 100)
-      : 0;
-
-  const codeDedication =
-    sorted.length > 0
-      ? Math.round((totalContributionDays / sorted.length) * 100)
-      : 0;
+  const weekendTotal = dayTotals[0] + dayTotals[6];
 
   return {
-    mostProductiveDay,
-    longestStreak,
+    mostProductiveDay: {
+      day: total > 0 ? DAY_NAMES[topDayIndex] : "N/A",
+      dayIndex: topDayIndex,
+      count: dayTotals[topDayIndex],
+    },
+    longestStreak: longestRun(sorted, (day) => day.count > 0),
     currentStreak,
-    totalContributionDays,
-    averagePerDay,
+    longestBreak: longestRun(sorted, (day) => day.count === 0),
+    totalContributionDays: activeDays,
+    totalDays: sorted.length,
+    averagePerDay: Math.round((total / sorted.length) * 10) / 10,
     busiestMonth,
-    weekendWarrior,
-    codeDedication,
-    peakDay,
+    busiestWeek:
+      topWeek && topWeek.count > 0
+        ? { start: topWeek.start, count: topWeek.count }
+        : EMPTY_INSIGHTS.busiestWeek,
+    weekendWarrior: total > 0 ? Math.round((weekendTotal / total) * 100) : 0,
+    codeDedication: Math.round((activeDays / sorted.length) * 100),
+    peakDay:
+      peak && peak.count > 0
+        ? { date: peak.date, count: peak.count }
+        : EMPTY_INSIGHTS.peakDay,
     monthlyData,
     weeklyData,
+    quarters: [0, 1, 2, 3].map((quarter) =>
+      monthTotals
+        .slice(quarter * 3, quarter * 3 + 3)
+        .reduce((sum, count) => sum + count, 0)
+    ),
   };
 }
 
+// Dates are calendar days (YYYY-MM-DD), so format them in UTC to avoid the
+// viewer's timezone shifting them by a day.
 export function formatPeakDate(dateStr: string): string {
   if (!dateStr) return "N/A";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(`${dateStr}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 }

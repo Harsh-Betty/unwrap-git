@@ -2,16 +2,17 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 interface ContributionWaveProps {
-  data: { week: number; count: number }[];
+  data: { week: number; start: string; count: number }[];
+  year: number;
 }
 
-export function ContributionWave({ data }: ContributionWaveProps) {
+export function ContributionWave({ data, year }: ContributionWaveProps) {
   if (!data || data.length === 0) return null;
 
   return (
     <div className="w-full h-48 bg-terminal-bg rounded-lg border border-terminal/20 p-4">
       <div className="text-terminal/60 text-xs uppercase tracking-wider mb-2">
-        Contribution Wave · 2025
+        Contributions per week · {year}
       </div>
       <ResponsiveContainer width="100%" height="85%">
         <AreaChart

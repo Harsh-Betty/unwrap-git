@@ -7,6 +7,9 @@ interface InsightsPanelProps {
   insights: Insights;
   username: string;
   languageCount: number;
+  year: number;
+  // The year is still in progress, so "current streak" means something.
+  isYtd: boolean;
 }
 
 function CircularProgress({ value, label }: { value: number; label: string }) {
@@ -52,26 +55,30 @@ export function InsightsPanel({
   insights,
   username,
   languageCount,
+  year,
+  isYtd,
 }: InsightsPanelProps) {
   return (
     <div className="mt-6 p-4 bg-terminal-surface border border-terminal/20 rounded">
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-5 h-5 text-terminal" />
         <span className="text-terminal/80 text-sm uppercase tracking-wider font-bold">
-          2025 Insights for @{username}
+          {year} insights for @{username}
         </span>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div className="p-3 bg-terminal-bg rounded border border-terminal/10 text-center">
           <div className="text-terminal text-3xl font-bold">
-            {insights.currentStreak}
+            {isYtd ? insights.currentStreak : insights.longestStreak}
           </div>
           <div className="text-terminal/50 text-xs uppercase mt-1">
-            Day Streak
+            {isYtd ? "Day Streak" : "Longest Streak"}
           </div>
           <div className="text-terminal/30 text-xs">
-            Best: {insights.longestStreak}
+            {isYtd
+              ? `Best: ${insights.longestStreak}`
+              : `Longest break: ${insights.longestBreak} days`}
           </div>
         </div>
 
@@ -94,7 +101,7 @@ export function InsightsPanel({
           <div className="text-terminal/50 text-xs uppercase mt-1">
             Languages
           </div>
-          <div className="text-terminal/30 text-xs">Used in 2025</div>
+          <div className="text-terminal/30 text-xs">Used in {year}</div>
         </div>
 
         <div className="p-3 bg-terminal-bg rounded border border-terminal/10">

@@ -96,6 +96,9 @@ export function StatCardModal({
   const archetype = getArchetype(stats);
   const rankBadge = getRankBadge(stats.contributions.commits);
   const topLanguage = stats.languages[0];
+  const fileName = `${stats.user.login}-unwrapped-${stats.year}.png`;
+  const shareTitle = `${stats.user.login}'s GitHub Unwrapped ${stats.year}`;
+  const shareText = `My ${stats.year} on GitHub: ${stats.contributions.commits.toLocaleString()} commits as a ${archetype.title}`;
 
   async function handleDownload() {
     if (!cardRef.current) return;
@@ -108,7 +111,7 @@ export function StatCardModal({
       });
 
       const link = document.createElement("a");
-      link.download = `${stats.user.login}-unwrapped-2025.png`;
+      link.download = fileName;
       link.href = dataUrl;
       link.click();
     } catch (error) {
@@ -129,20 +132,20 @@ export function StatCardModal({
 
       const response = await fetch(dataUrl);
       const blob = await response.blob();
-      const file = new File([blob], `${stats.user.login}-unwrapped-2025.png`, {
+      const file = new File([blob], fileName, {
         type: "image/png",
       });
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: `${stats.user.login}'s GitHub Unwrapped 2025`,
-          text: `Check out my GitHub stats for 2025! ${stats.contributions.commits} commits as a ${archetype.title}`,
+          title: shareTitle,
+          text: shareText,
           files: [file],
         });
       } else if (navigator.share) {
         await navigator.share({
-          title: `${stats.user.login}'s GitHub Unwrapped 2025`,
-          text: `Check out my GitHub stats for 2025! ${stats.contributions.commits} commits as a ${archetype.title}`,
+          title: shareTitle,
+          text: shareText,
           url: window.location.href,
         });
       } else {
@@ -263,7 +266,7 @@ export function StatCardModal({
 
             <div className="flex items-center justify-between text-[10px] text-terminal/40 font-mono pt-2 border-t border-terminal/20">
               <span>unwrap-git.hrshvrdhn.com</span>
-              <span>2025</span>
+              <span>{stats.year}</span>
             </div>
           </div>
         </div>

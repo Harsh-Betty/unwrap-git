@@ -1,31 +1,20 @@
 "use client";
-import { useState } from "react";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 import dynamic from "next/dynamic";
-import { ContributionWave } from "./charts/ContributionWave";
-import { LanguageChart } from "./charts/LanguageChart";
+import { CalendarDays, CreditCard, LayoutGrid, Mountain, Play, Waves } from "lucide-react";
 import { ActivityCalendar } from "./charts/ActivityCalendar";
-import { BarChart3, Calendar, Dna, Mountain, CreditCard } from "lucide-react";
+import { ContributionWave } from "./charts/ContributionWave";
+import { CommitClock } from "./insights/CommitClock";
+import { FunFacts } from "./insights/FunFacts";
+import { HighlightTiles } from "./insights/HighlightTiles";
+import { LanguageBars } from "./insights/LanguageBars";
+import { RepoList } from "./insights/RepoList";
 import { StatCardModal } from "./StatCardModal";
+import { WrappedStory } from "./WrappedStory";
+import type { Archetype } from "@/lib/archetype";
 import type { UserStats } from "@/lib/github";
 
-// lazy load 3D components
-const ContributionHelix = dynamic(
-  () =>
-    import("./3d/ContributionHelix").then((mod) => ({
-      default: mod.ContributionHelix,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-80 bg-terminal-bg rounded-lg border border-terminal/20 flex items-center justify-center">
-        <div className="text-terminal/50 animate-pulse">
-          Loading 3D Helix...
-        </div>
-      </div>
-    ),
-  }
-);
-
+// three.js is large, so the terrain only loads when its tab is opened.
 const ContributionTerrain = dynamic(
   () =>
     import("./3d/ContributionTerrain").then((mod) => ({
@@ -35,9 +24,7 @@ const ContributionTerrain = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-80 bg-terminal-bg rounded-lg border border-terminal/20 flex items-center justify-center">
-        <div className="text-terminal/50 animate-pulse">
-          Loading 3D Terrain...
-        </div>
+        <p className="text-terminal/70 animate-pulse">Loading 3D terrain…</p>
       </div>
     ),
   }
@@ -47,69 +34,121 @@ interface VisualizationTabsProps {
   stats: UserStats;
   // Position on that year's leaderboard, when the user is listed.
   rank: { rank: number; total: number } | null;
+  archetype: Archetype;
 }
 
-type TabId = "charts" | "calendar" | "helix" | "terrain";
+type TabId = "overview" | "calendar" | "weekly" | "terrain";
 
-const TABS: {
-  id: TabId;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}[] = [
-  { id: "charts", label: "Charts", icon: BarChart3 },
-  { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "helix", label: "3D Helix", icon: Dna },
+const TABS: { id: TabId; label: string; icon: typeof LayoutGrid }[] = [
+  { id: "overview", label: "Overview", icon: LayoutGrid },
+  { id: "calendar", label: "Calendar", icon: CalendarDays },
+  { id: "weekly", label: "Weekly", icon: Waves },
   { id: "terrain", label: "3D Terrain", icon: Mountain },
 ];
 
 export function VisualizationTabs({
   stats,
   rank,
+  archetype,
 }: Readonly<VisualizationTabsProps>) {
-  const [activeTab, setActiveTab] = useState<TabId>("charts");
-  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [isCardOpen, setIsCardOpen] = useState(false);
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const baseId = useId();
+
+  // Arrow keys move between tabs, as in the WAI-ARIA tabs pattern.
+  function handleTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    const target =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? TABS.length - 1
+          : step !== undefined
+            ? (index + step + TABS.length) % TABS.length
+            : null;
+    if (target === null) return;
+    event.preventDefault();
+    setActiveTab(TABS[target].id);
+    tabRefs.current[target]?.focus();
+  }
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between border-b border-terminal/20 mb-4 overflow-x-auto">
-        <div className="flex">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 text-sm transition-colors cursor-pointer flex items-center gap-2
-                  ${
-                    activeTab === tab.id
-                      ? "text-terminal border-b-2 border-terminal -mb-px"
-                      : "text-terminal/40 hover:text-terminal/70"
-                  }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
+      <div className="flex flex-wrap gap-3 mb-4">
         <button
-          onClick={() => setIsCardModalOpen(true)}
-          className="px-3 py-1.5 text-sm bg-terminal/10 hover:bg-terminal/20 border border-terminal/30 rounded text-terminal transition-colors cursor-pointer flex items-center gap-2"
+          type="button"
+          onClick={() => setIsStoryOpen(true)}
+          className="focus-ring inline-flex items-center gap-2 min-h-11 px-4 rounded bg-terminal text-terminal-bg font-bold hover:bg-terminal-bright transition-colors cursor-pointer"
         >
-          <CreditCard className="w-4 h-4" />
-          <span>Generate Card</span>
+          <Play className="w-4 h-4" aria-hidden="true" />
+          Play my {stats.year} recap
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsCardOpen(true)}
+          className="focus-ring inline-flex items-center gap-2 min-h-11 px-4 rounded border border-terminal/40 text-terminal hover:bg-terminal/10 transition-colors cursor-pointer"
+        >
+          <CreditCard className="w-4 h-4" aria-hidden="true" />
+          Share card
         </button>
       </div>
 
-      <div className="space-y-4">
-        {activeTab === "charts" && (
+      <div
+        role="tablist"
+        aria-label="Visualizations"
+        className="flex border-b border-terminal/20 mb-4 overflow-x-auto"
+      >
+        {TABS.map((tab, index) => {
+          const Icon = tab.icon;
+          const selected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              ref={(node) => {
+                tabRefs.current[index] = node;
+              }}
+              type="button"
+              role="tab"
+              id={`${baseId}-tab-${tab.id}`}
+              aria-selected={selected}
+              aria-controls={`${baseId}-panel`}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setActiveTab(tab.id)}
+              onKeyDown={(event) => handleTabKey(event, index)}
+              className={`focus-ring shrink-0 min-h-11 px-4 text-sm transition-colors cursor-pointer flex items-center gap-2 ${
+                selected
+                  ? "text-terminal border-b-2 border-terminal -mb-px"
+                  : "text-terminal/70 hover:text-terminal"
+              }`}
+            >
+              <Icon className="w-4 h-4" aria-hidden="true" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        role="tabpanel"
+        id={`${baseId}-panel`}
+        aria-labelledby={`${baseId}-tab-${activeTab}`}
+        tabIndex={0}
+        className="space-y-4 focus:outline-none"
+      >
+        {activeTab === "overview" && (
           <>
-            <ContributionWave
-              data={stats.insights.weeklyData}
-              year={stats.year}
-            />
-            <LanguageChart languages={stats.languages} />
+            <HighlightTiles stats={stats} />
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 [&>*]:min-w-0">
+              {stats.commitSample && <CommitClock sample={stats.commitSample} />}
+              <LanguageBars
+                languages={stats.languages}
+                restricted={stats.contributions.restricted}
+              />
+              <RepoList repos={stats.repos} login={stats.user.login} />
+              <FunFacts stats={stats} />
+            </div>
           </>
         )}
 
@@ -117,11 +156,8 @@ export function VisualizationTabs({
           <ActivityCalendar calendar={stats.calendar} year={stats.year} />
         )}
 
-        {activeTab === "helix" && (
-          <ContributionHelix
-            calendar={stats.calendar}
-            username={stats.user.login}
-          />
+        {activeTab === "weekly" && (
+          <ContributionWave data={stats.insights.weeklyData} year={stats.year} />
         )}
 
         {activeTab === "terrain" && (
@@ -132,11 +168,19 @@ export function VisualizationTabs({
         )}
       </div>
 
+      <WrappedStory
+        stats={stats}
+        archetype={archetype}
+        open={isStoryOpen}
+        onClose={() => setIsStoryOpen(false)}
+        onShare={() => setIsCardOpen(true)}
+      />
       <StatCardModal
         stats={stats}
         rank={rank}
-        isOpen={isCardModalOpen}
-        onClose={() => setIsCardModalOpen(false)}
+        archetype={archetype}
+        isOpen={isCardOpen}
+        onClose={() => setIsCardOpen(false)}
       />
     </div>
   );

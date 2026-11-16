@@ -5,6 +5,7 @@ import { InsightsPanel, StatsOutput, TerminalLayout } from "@/components/termina
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
 import { VisualizationTabs } from "@/components/VisualizationTabs";
 import { YearSwitcher } from "@/components/YearSwitcher";
+import { getArchetype } from "@/lib/archetype";
 import { getLeaderboardRank } from "@/lib/leaderboard";
 import { getStats, type StatsResult } from "@/lib/stats";
 import { currentYear, profilePath } from "@/lib/year";
@@ -93,6 +94,7 @@ export async function UserYearView({ username, year }: UserYearViewProps) {
   const rank = await getLeaderboardRank(user.login, stats.year).catch(
     () => null
   );
+  const archetype = getArchetype(stats);
   const leaderboardHref =
     stats.year === currentYear() ? "/leaderboard" : `/leaderboard/${stats.year}`;
 
@@ -160,7 +162,7 @@ export async function UserYearView({ username, year }: UserYearViewProps) {
         isYtd={stats.isYtd}
       />
 
-      <VisualizationTabs stats={stats} rank={rank} />
+      <VisualizationTabs stats={stats} rank={rank} archetype={archetype} />
 
       <details className="group mt-6">
         <summary className="focus-ring cursor-pointer text-terminal/70 text-xs hover:text-terminal transition-colors">

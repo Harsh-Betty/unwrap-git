@@ -19,6 +19,15 @@ export interface LeaderboardRank {
 }
 
 export const LEADERBOARD_TAG = "leaderboard";
+
+// Only production adds people to the leaderboard. Local runs and Vercel
+// preview deployments usually share the production database, and a test
+// lookup there would otherwise land on the live leaderboard. Set
+// LEADERBOARD_WRITES=on to enable writes elsewhere (self-hosting, or a
+// deliberate local test against a test database).
+const LEADERBOARD_WRITES_ENABLED =
+  process.env.VERCEL_ENV === "production" ||
+  process.env.LEADERBOARD_WRITES === "on";
 const REVALIDATE_SECONDS = 5 * 60;
 const PAGE_SIZE = 100;
 
@@ -29,7 +38,7 @@ const PAGE_SIZE = 100;
 // their own token: that row includes private contributions the public one
 // cannot see. A user who hid themselves stays hidden in every year.
 export async function recordLeaderboardEntry(stats: UserStats): Promise<void> {
-  if (stats.contributions.total === 0) return;
+  if (!LEADERBOARD_WRITES_ENABLED || stats.contributions.total === 0) return;
 
   await pool.query(
     `insert into public.leaderboard_stats
@@ -74,7 +83,7 @@ export const getLeaderboard = unstable_cache(
       `select username, name, avatar_url, total_contributions, total_commits,
               top_language, longest_streak
        from public.leaderboard_stats
-       where year = $1 and not hidden
+       where year = $1 and not hidden and total_contributions > 0
        order by total_contributions desc, username asc
        limit $2`,
       [year, PAGE_SIZE]
@@ -116,9 +125,11 @@ export const getLeaderboardRank = unstable_cache(
             where o.year = me.year and not o.hidden
               and o.total_contributions > me.total_contributions) + 1 as rank,
          (select count(*)::int from public.leaderboard_stats o
-            where o.year = me.year and not o.hidden) as total
+            where o.year = me.year and not o.hidden
+              and o.total_contributions > 0) as total
        from public.leaderboard_stats me
-       where lower(me.username) = lower($1) and me.year = $2 and not me.hidden`,
+       where lower(me.username) = lower($1) and me.year = $2
+         and not me.hidden and me.total_contributions > 0`,
       [login, year]
     );
     return rows[0] ? { rank: rows[0].rank, total: rows[0].total } : null;

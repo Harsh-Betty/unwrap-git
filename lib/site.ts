@@ -1,7 +1,8 @@
 // Canonical origin for metadata, sitemaps and share links. Override per
 // deployment (for example a preview URL) with NEXT_PUBLIC_SITE_URL.
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://unwrap-git.hrshvrdhn.com"
+  // `||`, not `??`: an empty NEXT_PUBLIC_SITE_URL= must fall back too.
+  process.env.NEXT_PUBLIC_SITE_URL || "https://unwrap-git.hrshvrdhn.com"
 ).replace(/\/$/, "");
 
 export const SITE_NAME = "Unwrap Git";

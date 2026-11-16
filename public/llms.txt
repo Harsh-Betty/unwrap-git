@@ -1,0 +1,20 @@
+# Unwrap Git
+
+> Unwrap Git is a free "GitHub Wrapped": a year-in-review of any GitHub user's activity for any year since 2008. It shows contributions, commits, pull requests, reviews, languages, streaks, commit hours and a coding personality, with a recap story and a shareable card. No sign-up is needed; signing in with GitHub adds your own private contribution counts.
+
+## Pages
+
+- [Home](https://unwrap-git.hrshvrdhn.com/): look up a GitHub username and pick a year.
+- [Profile for the current year](https://unwrap-git.hrshvrdhn.com/torvalds): `/<github-username>` shows the year so far.
+- [Profile for a past year](https://unwrap-git.hrshvrdhn.com/torvalds/2025): `/<github-username>/<year>` shows January 1 to December 31 (UTC).
+- [Leaderboard](https://unwrap-git.hrshvrdhn.com/leaderboard): everyone unwrapped this year, ranked by contributions. Past years at `/leaderboard/<year>`.
+- [How it works](https://unwrap-git.hrshvrdhn.com/how-it-works): data sources, how each metric is calculated, privacy and FAQ.
+
+## Facts
+
+- Data comes from the GitHub GraphQL API. Only the `read:user` permission is requested; private code, repository names and languages are never read.
+- Languages are weighted by code size: each repository's commits are split across its languages.
+- Commit hours come from a sample of up to 100 commits in each of the user's 6 busiest public repositories, in the committer's own timezone.
+- Stats are cached for 2 hours (current year) or 14 days (past years).
+- Everyone looked up is added to that year's leaderboard; signed-in users can hide themselves.
+- Open source: https://github.com/Harsh-Betty/unwrap-git

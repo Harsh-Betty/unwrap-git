@@ -11,6 +11,7 @@ import {
   getLeaderboardYears,
   isHiddenFromLeaderboard,
 } from "@/lib/leaderboard";
+import { absoluteUrl, jsonLd } from "@/lib/site";
 import { currentYear, profilePath } from "@/lib/year";
 
 const MEDALS = [
@@ -52,8 +53,30 @@ export async function LeaderboardView({ year }: { year: number }) {
   );
   const isCurrent = year === currentYear();
 
+  const structuredData = entries?.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: `GitHub contributions leaderboard ${year}`,
+        itemListOrder: "https://schema.org/ItemListOrderDescending",
+        numberOfItems: entries.length,
+        itemListElement: entries.slice(0, 50).map((entry, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: entry.name ?? entry.username,
+          url: absoluteUrl(profilePath(entry.username, year)),
+        })),
+      }
+    : null;
+
   return (
     <TerminalLayout>
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
+        />
+      )}
       <header className="mb-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl text-terminal font-bold flex items-center gap-2">

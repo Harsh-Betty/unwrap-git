@@ -8,6 +8,7 @@ import { YearSwitcher } from "@/components/YearSwitcher";
 import { getArchetype } from "@/lib/archetype";
 import { getLeaderboardRank } from "@/lib/leaderboard";
 import { getStats, type StatsResult } from "@/lib/stats";
+import { absoluteUrl, jsonLd } from "@/lib/site";
 import { currentYear, profilePath } from "@/lib/year";
 
 interface UserYearViewProps {
@@ -98,8 +99,40 @@ export async function UserYearView({ username, year }: UserYearViewProps) {
   const leaderboardHref =
     stats.year === currentYear() ? "/leaderboard" : `/leaderboard/${stats.year}`;
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    url: absoluteUrl(profilePath(user.login, stats.year)),
+    name: `${user.name ?? user.login}'s GitHub Wrapped ${stats.year}`,
+    dateModified: stats.fetchedAt,
+    mainEntity: {
+      "@type": "Person",
+      name: user.name ?? user.login,
+      alternateName: `@${user.login}`,
+      identifier: user.login,
+      image: user.avatarUrl,
+      ...(user.bio ? { description: user.bio } : {}),
+      url: `https://github.com/${user.login}`,
+      sameAs: [
+        `https://github.com/${user.login}`,
+        ...(user.twitterUsername ? [`https://x.com/${user.twitterUsername}`] : []),
+      ],
+      interactionStatistic: [
+        {
+          "@type": "InteractionCounter",
+          interactionType: "https://schema.org/FollowAction",
+          userInteractionCount: user.followers,
+        },
+      ],
+    },
+  };
+
   return (
     <TerminalLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
+      />
       <header className="mb-6 space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">

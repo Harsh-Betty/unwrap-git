@@ -3,7 +3,14 @@ import { notFound } from "next/navigation";
 import { ProfileLoading } from "@/components/ProfileLoading";
 import { UserYearView } from "@/components/UserYearView";
 import { normalizeUsername } from "@/lib/username";
+import { profileMetadata } from "@/lib/profile-metadata";
 import { currentYear } from "@/lib/year";
+
+export async function generateMetadata(props: PageProps<"/[username]">) {
+  const { username } = await props.params;
+  const login = normalizeUsername(username);
+  return login ? profileMetadata(login, currentYear()) : {};
+}
 
 export default async function UserPage(props: PageProps<"/[username]">) {
   const { username } = await props.params;

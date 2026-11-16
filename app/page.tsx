@@ -3,7 +3,42 @@ import { BookOpen, Trophy } from "lucide-react";
 import { SearchForm } from "@/components/SearchForm";
 import { AuthButtons, TerminalLayout } from "@/components/terminal";
 import { currentYear, selectableYears } from "@/lib/year";
+import { jsonLd, REPO_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import packageJson from "@/package.json";
+
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+    },
+    {
+      "@type": "WebApplication",
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Any",
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      featureList: [
+        "GitHub year in review for any year since 2008",
+        "Contributions, streaks and active days",
+        "Languages weighted by code size",
+        "Commit hours by time of day and weekday",
+        "Coding personality",
+        "Yearly leaderboard",
+        "Shareable stats card",
+      ],
+      codeRepository: REPO_URL,
+      author: { "@type": "Person", name: "Harshvardhan Singh", url: "https://github.com/Harsh-Betty" },
+    },
+  ],
+};
 
 const ASCII_HEADER = `
  ██████╗ ██╗████████╗██╗  ██╗██╗   ██╗██████╗     
@@ -32,6 +67,10 @@ export default function Home() {
 
   return (
     <TerminalLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(STRUCTURED_DATA) }}
+      />
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
         <div className="min-w-0">
           <h1 className="sr-only">GitHub Unwrapped: your year in code</h1>

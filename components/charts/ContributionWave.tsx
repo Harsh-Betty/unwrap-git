@@ -36,7 +36,7 @@ export function ContributionWave({ data, year }: ContributionWaveProps) {
             dataKey="week"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#ffb00050", fontSize: 10 }}
+            tick={{ fill: "#ffb000b3", fontSize: 10 }}
             tickFormatter={(week) => (week % 4 === 0 ? `W${week}` : "")}
           />
           <Tooltip

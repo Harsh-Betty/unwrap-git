@@ -18,15 +18,15 @@ export function TerminalLayout({
 
       <div className="terminal-window mx-auto max-w-5xl min-h-screen flex flex-col">
         <div className="terminal-header flex items-center gap-2 px-4 py-3 bg-terminal-surface border-b border-terminal/20">
-          <div className="flex gap-2">
+          <div className="flex gap-2" aria-hidden="true">
             <span className="w-3 h-3 rounded-full bg-[#ff5f56] shadow-[0_0_8px_#ff5f56]" />
             <span className="w-3 h-3 rounded-full bg-[#ffbd2e] shadow-[0_0_8px_#ffbd2e]" />
             <span className="w-3 h-3 rounded-full bg-terminal shadow-[0_0_8px_#ffb000]" />
           </div>
           <div className="flex-1 text-center text-terminal-dim text-sm tracking-wider">
-            <span className="text-terminal/60">~/</span>
+            <span className="text-terminal/70">~/</span>
             <span className="text-terminal">unwrap-git</span>
-            <span className="text-terminal/60"> — bash</span>
+            <span className="text-terminal/70"> — bash</span>
           </div>
           <div className="w-16" />
         </div>

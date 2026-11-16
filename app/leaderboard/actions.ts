@@ -1,5 +1,5 @@
 "use server";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { LEADERBOARD_TAG, setHiddenFromLeaderboard } from "@/lib/leaderboard";
@@ -15,6 +15,8 @@ export async function setLeaderboardVisibility(
   if (!login) return { success: false };
 
   await setHiddenFromLeaderboard(login, hidden === true, currentYear());
-  updateTag(LEADERBOARD_TAG);
+  // Expire immediately (no stale copy) so the change shows on the next load.
+  // The tag is set through unstable_cache, which revalidateTag covers.
+  revalidateTag(LEADERBOARD_TAG, { expire: 0 });
   return { success: true };
 }

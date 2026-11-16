@@ -35,30 +35,57 @@ const TTL = {
 
 type CacheEntry = { stats: UserStats } | { notFound: true };
 
-// The signed-in user's GitHub token, only when they are viewing themselves.
-async function ownToken(
+// True when the signed-in user is looking at their own profile. Reads the
+// session from its signed cookie cache, so it normally costs no database call.
+async function isOwnProfile(
   login: string,
   requestHeaders: Headers
-): Promise<string | undefined> {
+): Promise<boolean> {
   try {
     const session = await auth.api.getSession({ headers: requestHeaders });
-    if (session?.user.name?.toLowerCase() !== login.toLowerCase()) {
-      return undefined;
-    }
+    return session?.user.name?.toLowerCase() === login.toLowerCase();
+  } catch (error) {
+    console.error("Could not read the session:", error);
+    return false;
+  }
+}
+
+// The signed-in user's GitHub token. Only called on a cache miss for their own
+// profile, because it reads the account table.
+async function ownToken(requestHeaders: Headers): Promise<string | undefined> {
+  try {
     const accounts = await auth.api.listUserAccounts({
       headers: requestHeaders,
     });
     const github = accounts.find((account) => account.providerId === "github");
-    if (!github) return undefined;
+    if (!github) {
+      console.warn("Signed-in user has no GitHub account row; using public data");
+      return undefined;
+    }
     const token = await auth.api.getAccessToken({
       body: { accountId: github.id },
       headers: requestHeaders,
     });
+    if (!token.accessToken) {
+      console.warn("GitHub account has no access token; using public data");
+    }
     return token.accessToken || undefined;
   } catch (error) {
     console.error("Could not read the GitHub token, using public data:", error);
     return undefined;
   }
+}
+
+function cacheKey(login: string, year: number, scope: "self" | "pub"): string {
+  // "self" entries hold private contribution counts and are only ever read
+  // back for that same signed-in user.
+  return `stats:v2:${login.toLowerCase()}:${year}:${scope}`;
+}
+
+function fromCache(entry: CacheEntry): StatsResult {
+  return "stats" in entry
+    ? { ok: true, data: entry.stats }
+    : { ok: false, reason: "not_found" };
 }
 
 // Order matters for cost: a cache hit is a single Redis read, and only a miss
@@ -71,17 +98,20 @@ export const getStats = cache(
     if (!login || !isValidYear(year)) return { ok: false, reason: "invalid" };
 
     const requestHeaders = await headers();
-    const token = await ownToken(login, requestHeaders);
 
-    // "self" entries hold private contribution counts and are only ever read
-    // back for that same signed-in user.
-    const key = `stats:v2:${login.toLowerCase()}:${year}:${token ? "self" : "pub"}`;
+    // Own profile: the private-inclusive copy if cached, else fetch the token.
+    // No token (or a failed lookup) falls back to the shared public copy.
+    const self = await isOwnProfile(login, requestHeaders);
+    if (self) {
+      const cachedSelf = await cacheGet<CacheEntry>(cacheKey(login, year, "self"));
+      if (cachedSelf) return fromCache(cachedSelf);
+    }
+    const token = self ? await ownToken(requestHeaders) : undefined;
+    const key = cacheKey(login, year, token ? "self" : "pub");
 
-    const cached = await cacheGet<CacheEntry>(key);
-    if (cached) {
-      return "stats" in cached
-        ? { ok: true, data: cached.stats }
-        : { ok: false, reason: "not_found" };
+    if (!token) {
+      const cached = await cacheGet<CacheEntry>(key);
+      if (cached) return fromCache(cached);
     }
 
     const ip =

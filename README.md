@@ -69,11 +69,11 @@ You need [Bun](https://bun.sh), a Postgres database and a GitHub account.
    | `DATABASE_URL` | A Postgres connection string. |
    | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Optional. Without them, caching and rate limiting use memory. |
    | `NEXT_PUBLIC_SITE_URL` | Optional. The canonical origin used in metadata and the sitemap. |
+   | `LEADERBOARD_WRITES` | Optional. Leaderboard rows are only written on Vercel production; set to `on` to write them anywhere else. |
 
 3. **Create the database tables.** Create the sign-in tables with the
-   better-auth CLI, then run the SQL files in `db/migrations` in order (for
-   example in the Supabase SQL editor). The leaderboard table they alter is
-   described in `db/migrations/001_leaderboard_years.sql`.
+   better-auth CLI, then run the SQL files in `db/migrations` in order, for
+   example with `psql "$DATABASE_URL" -f <file>` or in the Supabase SQL editor.
 
    ```bash
    bunx auth@latest migrate

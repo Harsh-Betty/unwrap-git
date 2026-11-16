@@ -66,7 +66,7 @@ export function LanguageChart({ languages }: LanguageChartProps) {
                   color: "#ffb000",
                   marginBottom: "4px",
                 }}
-                formatter={(value?: number, name?: string) => [
+                formatter={(value, name) => [
                   `${value} commits`,
                   name,
                 ]}

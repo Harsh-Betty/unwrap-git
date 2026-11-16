@@ -47,7 +47,7 @@ export function ContributionWave({ data }: ContributionWaveProps) {
               fontSize: "12px",
             }}
             labelFormatter={(week) => `Week ${week}`}
-            formatter={(value?: number) => [`${value} contributions`, ""]}
+            formatter={(value) => [`${value} contributions`, ""]}
           />
           <Area
             type="monotone"

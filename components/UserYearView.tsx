@@ -72,6 +72,7 @@ function ErrorState({
           {!isMissing && (
             <Link
               href={profilePath(name, year)}
+              prefetch={false}
               className="focus-ring inline-flex items-center min-h-11 px-4 rounded bg-terminal text-terminal-bg font-bold hover:bg-terminal-bright transition-colors"
             >
               Try again

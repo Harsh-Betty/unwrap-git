@@ -51,9 +51,9 @@ export function FunFacts({ stats }: { stats: UserStats }) {
       aria-labelledby="fun-facts-title"
       className="p-4 bg-terminal-bg rounded border border-terminal/15"
     >
-      <h3 id="fun-facts-title" className="text-terminal font-bold">
+      <h2 id="fun-facts-title" className="text-terminal font-bold">
         Fun facts
-      </h3>
+      </h2>
       <dl className="mt-3 space-y-3 text-sm">
         {facts.map((fact) => (
           <div key={fact.label}>

@@ -216,6 +216,8 @@ export async function LeaderboardView({ year }: { year: number }) {
                     <td className="px-3 py-2">
                       <Link
                         href={profilePath(entry.username, year)}
+                        // A prefetch would run a GitHub lookup for every row.
+                        prefetch={false}
                         className="focus-ring inline-flex items-center gap-3 min-h-11 text-terminal hover:text-terminal-bright"
                       >
                         {entry.avatarUrl && (

@@ -31,14 +31,14 @@ export function TerminalLayout({
           <div className="w-16" />
         </div>
 
-        <div
+        <main
           className={cn(
             "terminal-content flex-1 p-6 overflow-auto",
             childClassName
           )}
         >
           {children}
-        </div>
+        </main>
       </div>
 
       <div

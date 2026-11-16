@@ -7,7 +7,9 @@ interface YearSwitcherProps {
   activeYear: number;
 }
 
-// Links to every year the user has contributions in. Plain links, so each
+// Links to every year the user has contributions in. No prefetching: each
+// year is a separate GitHub lookup, and the visitor opens at most one or two.
+// Plain links, so each
 // year is its own crawlable, shareable page.
 export function YearSwitcher({ login, years, activeYear }: YearSwitcherProps) {
   const options = years.includes(activeYear)
@@ -24,6 +26,7 @@ export function YearSwitcher({ login, years, activeYear }: YearSwitcherProps) {
             <li key={year}>
               <Link
                 href={profilePath(login, year)}
+                prefetch={false}
                 aria-current={isActive ? "page" : undefined}
                 className={`focus-ring flex items-center min-h-11 px-3 text-sm rounded border transition-colors ${
                   isActive

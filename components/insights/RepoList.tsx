@@ -29,9 +29,9 @@ export function RepoList({ repos, login }: { repos: RepoActivity[]; login: strin
       aria-labelledby="repos-title"
       className="p-4 bg-terminal-bg rounded border border-terminal/15"
     >
-      <h3 id="repos-title" className="text-terminal font-bold">
+      <h2 id="repos-title" className="text-terminal font-bold">
         Where you worked
-      </h3>
+      </h2>
       {others > 0 && (
         <p className="text-terminal/70 text-sm mt-1">
           {others} of these {repos.length} repositories belong to someone else.

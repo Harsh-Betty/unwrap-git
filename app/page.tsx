@@ -103,6 +103,7 @@ export default function Home() {
             <span key={login}>
               <Link
                 href={`/${login}`}
+                prefetch={false}
                 className="focus-ring underline underline-offset-4 text-terminal hover:text-terminal-bright"
               >
                 {login}

@@ -15,6 +15,7 @@ import type { UserStats } from "@/lib/github";
 
 interface StatCardModalProps {
   stats: UserStats;
+  rank: { rank: number; total: number } | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -77,16 +78,9 @@ function getArchetype(stats: UserStats): {
   };
 }
 
-function getRankBadge(commits: number): string {
-  if (commits >= 2000) return "Top 1%";
-  if (commits >= 1000) return "Top 5%";
-  if (commits >= 500) return "Top 10%";
-  if (commits >= 200) return "Top 25%";
-  return "Rising Star";
-}
-
 export function StatCardModal({
   stats,
+  rank,
   isOpen,
   onClose,
 }: Readonly<StatCardModalProps>) {
@@ -94,7 +88,6 @@ export function StatCardModal({
   const [isExporting, setIsExporting] = useState(false);
 
   const archetype = getArchetype(stats);
-  const rankBadge = getRankBadge(stats.contributions.commits);
   const topLanguage = stats.languages[0];
   const fileName = `${stats.user.login}-unwrapped-${stats.year}.png`;
   const shareTitle = `${stats.user.login}'s GitHub Unwrapped ${stats.year}`;
@@ -204,9 +197,11 @@ export function StatCardModal({
                   </p>
                 </div>
               </div>
-              <div className="px-2 py-1 bg-terminal/20 border border-terminal/40 rounded text-terminal text-xs font-bold">
-                {rankBadge}
-              </div>
+              {rank && (
+                <div className="px-2 py-1 bg-terminal/20 border border-terminal/40 rounded text-terminal text-xs font-bold">
+                  #{rank.rank} of {rank.total.toLocaleString("en-US")}
+                </div>
+              )}
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center text-center py-4">

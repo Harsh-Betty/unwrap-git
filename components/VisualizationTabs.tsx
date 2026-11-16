@@ -45,6 +45,8 @@ const ContributionTerrain = dynamic(
 
 interface VisualizationTabsProps {
   stats: UserStats;
+  // Position on that year's leaderboard, when the user is listed.
+  rank: { rank: number; total: number } | null;
 }
 
 type TabId = "charts" | "calendar" | "helix" | "terrain";
@@ -60,7 +62,10 @@ const TABS: {
   { id: "terrain", label: "3D Terrain", icon: Mountain },
 ];
 
-export function VisualizationTabs({ stats }: Readonly<VisualizationTabsProps>) {
+export function VisualizationTabs({
+  stats,
+  rank,
+}: Readonly<VisualizationTabsProps>) {
   const [activeTab, setActiveTab] = useState<TabId>("charts");
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
 
@@ -129,6 +134,7 @@ export function VisualizationTabs({ stats }: Readonly<VisualizationTabsProps>) {
 
       <StatCardModal
         stats={stats}
+        rank={rank}
         isOpen={isCardModalOpen}
         onClose={() => setIsCardModalOpen(false)}
       />

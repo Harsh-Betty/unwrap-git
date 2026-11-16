@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, ArrowLeft, Clock, Lock } from "lucide-react";
+import { AlertCircle, ArrowLeft, Clock, Lock, Trophy } from "lucide-react";
 import { InsightsPanel, StatsOutput, TerminalLayout } from "@/components/terminal";
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
 import { VisualizationTabs } from "@/components/VisualizationTabs";
 import { YearSwitcher } from "@/components/YearSwitcher";
+import { getLeaderboardRank } from "@/lib/leaderboard";
 import { getStats, type StatsResult } from "@/lib/stats";
-import { profilePath } from "@/lib/year";
+import { currentYear, profilePath } from "@/lib/year";
 
 interface UserYearViewProps {
   username: string;
@@ -89,6 +90,11 @@ export async function UserYearView({ username, year }: UserYearViewProps) {
 
   const stats = result.data;
   const { user } = stats;
+  const rank = await getLeaderboardRank(user.login, stats.year).catch(
+    () => null
+  );
+  const leaderboardHref =
+    stats.year === currentYear() ? "/leaderboard" : `/leaderboard/${stats.year}`;
 
   return (
     <TerminalLayout>
@@ -122,6 +128,22 @@ export async function UserYearView({ username, year }: UserYearViewProps) {
           activeYear={stats.year}
         />
 
+        {rank && (
+          <p className="text-sm">
+            <Link
+              href={leaderboardHref}
+              className="focus-ring inline-flex items-center gap-2 min-h-11 text-terminal hover:text-terminal-bright"
+            >
+              <Trophy className="w-4 h-4" aria-hidden="true" />
+              <span>
+                <span className="font-bold">#{rank.rank}</span> of{" "}
+                {rank.total.toLocaleString("en-US")} on the {stats.year}{" "}
+                leaderboard
+              </span>
+            </Link>
+          </p>
+        )}
+
         {stats.includesPrivate && (
           <p className="flex items-center gap-2 text-xs text-terminal/70">
             <Lock className="w-3.5 h-3.5" aria-hidden="true" />
@@ -138,7 +160,7 @@ export async function UserYearView({ username, year }: UserYearViewProps) {
         isYtd={stats.isYtd}
       />
 
-      <VisualizationTabs stats={stats} />
+      <VisualizationTabs stats={stats} rank={rank} />
 
       <details className="group mt-6">
         <summary className="focus-ring cursor-pointer text-terminal/70 text-xs hover:text-terminal transition-colors">

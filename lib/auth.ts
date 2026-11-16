@@ -11,6 +11,10 @@ export const pool = new Pool({
 
 export const auth = betterAuth({
   database: pool,
+  // The app treats the user's `name` as their GitHub login (set from the
+  // GitHub profile at sign-in). This endpoint would let a signed-in user
+  // rename themselves to someone else's login, so it is turned off.
+  disabledPaths: ["/update-user"],
   socialProviders: {
     github: {
       clientId: process.env.AUTH_GITHUB_ID as string,

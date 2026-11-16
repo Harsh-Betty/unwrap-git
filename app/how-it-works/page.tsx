@@ -139,9 +139,10 @@ export default function HowItWorksPage() {
             Leaderboard
           </h2>
           <p className="text-terminal/60 mb-2">
-            The leaderboard is <strong>opt-in only</strong>. Your data is never
-            shared publicly unless you click &quot;Join Leaderboard&quot; on
-            your stats page.
+            Everyone whose stats are looked up is added to that year&apos;s
+            leaderboard automatically. It only shows public profile details
+            and contribution totals. Sign in and open the leaderboard to hide
+            yourself from it.
           </p>
           <p className="text-terminal/60">
             Rankings are based on total contributions (commits + PRs + issues +
@@ -161,7 +162,7 @@ export default function HowItWorksPage() {
             </li>
             <li>• Stats are cached to reduce API calls: 2 hours for the current
               year, 14 days for past years</li>
-            <li>• Leaderboard data can be deleted at any time</li>
+            <li>• You can hide yourself from the leaderboard at any time</li>
             <li>
               • We only request{" "}
               <code className="text-terminal/80">read:user</code> scope

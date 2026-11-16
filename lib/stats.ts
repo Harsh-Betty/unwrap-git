@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { auth } from "./auth";
 import { cacheGet, cacheSet } from "./cache";
 import {
@@ -9,6 +10,7 @@ import {
   GitHubUserNotFoundError,
   type UserStats,
 } from "./github";
+import { recordLeaderboardEntry } from "./leaderboard";
 import { checkRateLimit } from "./rate-limiter";
 import { normalizeUsername } from "./username";
 import { currentYear, isValidYear } from "./year";
@@ -91,6 +93,14 @@ export const getStats = cache(
 
     try {
       const stats = await fetchUserStats({ login, year, token });
+      // Everyone whose stats are fetched joins that year's leaderboard. The
+      // write runs after the response is sent, so it never slows the page,
+      // and a database hiccup cannot cost the visitor their page.
+      after(() =>
+        recordLeaderboardEntry(stats).catch((error: unknown) =>
+          console.error("Leaderboard write failed:", error)
+        )
+      );
       await cacheSet(
         key,
         { stats } satisfies CacheEntry,

@@ -1,130 +1,81 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { KEY_PREFIX, markRedisDown, redis, redisAvailable } from "./redis";
 
-interface RateLimitEntry {
-  tokens: number;
-  lastRefill: number;
-}
-
-const BUCKET_SIZE = 10; // max requests per window
-const REFILL_RATE = 1; // tokens per second
-const REFILL_INTERVAL = 1000; // ms
-
-// in-memory storage for development
-const buckets = new Map<string, RateLimitEntry>();
-
-// redis for prod
-let redis: Redis | null = null;
-let ratelimit: Ratelimit | null = null;
-
-const isProduction = process.env.NODE_ENV === "production";
-
-if (
-  isProduction &&
-  process.env.UPSTASH_REDIS_REST_URL &&
-  process.env.UPSTASH_REDIS_REST_TOKEN
-) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  });
-
-  ratelimit = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(10, "60 s"), // 10 requests per minute
-    analytics: true,
-    prefix: "unwrap-git:ratelimit",
-  });
-}
-
-function refillBucket(entry: RateLimitEntry): RateLimitEntry {
-  const now = Date.now();
-  const elapsed = now - entry.lastRefill;
-  const tokensToAdd = Math.floor(elapsed / REFILL_INTERVAL) * REFILL_RATE;
-
-  return {
-    tokens: Math.min(BUCKET_SIZE, entry.tokens + tokensToAdd),
-    lastRefill: now,
-  };
-}
+const MAX_REQUESTS = 10;
+const WINDOW_SECONDS = 60;
 
 export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
-  resetIn: number; // seconds until a token is available
+  resetIn: number; // seconds until another request is allowed
 }
 
+const isProduction = process.env.NODE_ENV === "production";
+
+// Redis-backed in production. `ephemeralCache` remembers blocked identifiers
+// in memory so a client that is already over the limit costs no Redis calls,
+// and analytics stays off because it doubles the commands per check.
+const ratelimit =
+  isProduction && redis
+    ? new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(MAX_REQUESTS, `${WINDOW_SECONDS} s`),
+        analytics: false,
+        // If Redis does not answer within a second, let the request through.
+        timeout: 1000,
+        ephemeralCache: new Map(),
+        prefix: `${KEY_PREFIX}:ratelimit`,
+      })
+    : null;
+
+// Fixed-window counter for development and for when Redis is unavailable.
+const windows = new Map<string, { count: number; resetAt: number }>();
+
 function checkMemoryRateLimit(identifier: string): RateLimitResult {
-  let entry = buckets.get(identifier);
+  const now = Date.now();
+  const existing = windows.get(identifier);
+  const current =
+    existing && existing.resetAt > now
+      ? existing
+      : { count: 0, resetAt: now + WINDOW_SECONDS * 1000 };
 
-  if (!entry) {
-    entry = { tokens: BUCKET_SIZE, lastRefill: Date.now() };
-  } else {
-    entry = refillBucket(entry);
-  }
-
-  if (entry.tokens > 0) {
-    entry.tokens--;
-    buckets.set(identifier, entry);
+  if (current.count >= MAX_REQUESTS) {
     return {
-      allowed: true,
-      remaining: entry.tokens,
-      resetIn: 0,
+      allowed: false,
+      remaining: 0,
+      resetIn: Math.max(1, Math.ceil((current.resetAt - now) / 1000)),
     };
   }
 
-  buckets.set(identifier, entry);
-
-  const resetIn = Math.ceil(
-    (REFILL_INTERVAL - (Date.now() - entry.lastRefill)) / 1000
-  );
-
-  return {
-    allowed: false,
-    remaining: 0,
-    resetIn: Math.max(1, resetIn),
-  };
-}
-
-async function checkRedisRateLimit(
-  identifier: string
-): Promise<RateLimitResult> {
-  if (!ratelimit) {
-    console.warn("Ratelimit not initialized, falling back to memory");
-    return checkMemoryRateLimit(identifier);
+  windows.set(identifier, { ...current, count: current.count + 1 });
+  if (windows.size > 5000) {
+    for (const [key, entry] of windows) {
+      if (entry.resetAt <= now) windows.delete(key);
+    }
   }
-
-  const result = await ratelimit.limit(identifier);
-
   return {
-    allowed: result.success,
-    remaining: result.remaining,
-    resetIn: result.success ? 0 : Math.ceil((result.reset - Date.now()) / 1000),
+    allowed: true,
+    remaining: MAX_REQUESTS - current.count - 1,
+    resetIn: 0,
   };
 }
 
 export async function checkRateLimit(
   identifier: string
 ): Promise<RateLimitResult> {
-  if (isProduction && ratelimit) {
-    return checkRedisRateLimit(identifier);
+  if (!ratelimit || !redisAvailable()) return checkMemoryRateLimit(identifier);
+
+  try {
+    const result = await ratelimit.limit(identifier);
+    return {
+      allowed: result.success,
+      remaining: result.remaining,
+      resetIn: result.success
+        ? 0
+        : Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)),
+    };
+  } catch (error) {
+    markRedisDown("Rate limit check", error);
+    return checkMemoryRateLimit(identifier);
   }
-  return checkMemoryRateLimit(identifier);
-}
-
-export function checkRateLimitSync(identifier: string): RateLimitResult {
-  return checkMemoryRateLimit(identifier);
-}
-
-if (typeof setInterval !== "undefined" && !isProduction) {
-  setInterval(() => {
-    const now = Date.now();
-    const staleThreshold = 10 * 60 * 1000; // 10 minutes
-
-    for (const [key, entry] of buckets.entries()) {
-      if (now - entry.lastRefill > staleThreshold) {
-        buckets.delete(key);
-      }
-    }
-  }, 10 * 60 * 1000);
 }

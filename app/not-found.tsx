@@ -16,10 +16,10 @@ export default function NotFound() {
         </div>
 
         <div className="flex items-center gap-2 text-red-400 mb-2">
-          <AlertTriangle className="w-5 h-5" />
-          <span className="font-mono text-sm">SYSTEM MALFUNCTION</span>
+          <AlertTriangle className="w-5 h-5" aria-hidden="true" />
+          <h1 className="font-mono text-sm">Page not found</h1>
         </div>
-        <p className="text-terminal/60 mb-6 max-w-md">
+        <p className="text-terminal/80 mb-6 max-w-md">
           The page you&apos;re looking for doesn&apos;t exist or has been moved
           to another dimension.
         </p>
@@ -28,7 +28,7 @@ export default function NotFound() {
           href="/"
           className="px-4 py-2 bg-terminal/10 hover:bg-terminal/20 border border-terminal/30 rounded text-terminal transition-colors flex items-center gap-2"
         >
-          <Home className="w-4 h-4" />
+          <Home className="w-4 h-4" aria-hidden="true" />
           <span>Return to Terminal</span>
         </Link>
       </div>

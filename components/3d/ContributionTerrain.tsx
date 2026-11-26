@@ -33,8 +33,7 @@ function TerrainMesh({
     const weeks: { date: string; count: number }[][] = [];
     let currentWeek: { date: string; count: number }[] = [];
 
-    const firstDate = new Date(sorted[0]?.date || "2025-01-01");
-    const startDayOfWeek = firstDate.getDay();
+    const startDayOfWeek = sorted[0]?.weekday ?? 0;
     for (let i = 0; i < startDayOfWeek; i++) {
       currentWeek.push({ date: "", count: 0 });
     }
@@ -315,7 +314,7 @@ export function ContributionTerrain({
       <div className="absolute top-3 left-3 text-terminal/60 text-xs uppercase tracking-wider">
         Terrain Map · @{username}
       </div>
-      <div className="absolute bottom-2 left-2 text-xs text-terminal/40 pointer-events-none">
+      <div className="absolute bottom-2 left-2 text-xs text-terminal/70 pointer-events-none">
         Drag to rotate · Scroll to zoom · Hover for details
       </div>
     </div>

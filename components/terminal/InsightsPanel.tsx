@@ -7,6 +7,9 @@ interface InsightsPanelProps {
   insights: Insights;
   username: string;
   languageCount: number;
+  year: number;
+  // The year is still in progress, so "current streak" means something.
+  isYtd: boolean;
 }
 
 function CircularProgress({ value, label }: { value: number; label: string }) {
@@ -17,7 +20,7 @@ function CircularProgress({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative w-16 h-16">
-        <svg className="w-full h-full -rotate-90">
+        <svg className="w-full h-full -rotate-90" aria-hidden="true">
           <circle
             cx="32"
             cy="32"
@@ -43,7 +46,7 @@ function CircularProgress({ value, label }: { value: number; label: string }) {
           {value}%
         </div>
       </div>
-      <span className="text-terminal/50 text-xs">{label}</span>
+      <span className="text-terminal/70 text-xs">{label}</span>
     </div>
   );
 }
@@ -52,26 +55,30 @@ export function InsightsPanel({
   insights,
   username,
   languageCount,
+  year,
+  isYtd,
 }: InsightsPanelProps) {
   return (
     <div className="mt-6 p-4 bg-terminal-surface border border-terminal/20 rounded">
       <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="w-5 h-5 text-terminal" />
-        <span className="text-terminal/80 text-sm uppercase tracking-wider font-bold">
-          2025 Insights for @{username}
-        </span>
+        <BarChart3 className="w-5 h-5 text-terminal" aria-hidden="true" />
+        <h2 className="text-terminal/80 text-sm uppercase tracking-wider font-bold">
+          {year} insights for @{username}
+        </h2>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div className="p-3 bg-terminal-bg rounded border border-terminal/10 text-center">
           <div className="text-terminal text-3xl font-bold">
-            {insights.currentStreak}
+            {isYtd ? insights.currentStreak : insights.longestStreak}
           </div>
-          <div className="text-terminal/50 text-xs uppercase mt-1">
-            Day Streak
+          <div className="text-terminal/70 text-xs uppercase mt-1">
+            {isYtd ? "Day Streak" : "Longest Streak"}
           </div>
-          <div className="text-terminal/30 text-xs">
-            Best: {insights.longestStreak}
+          <div className="text-terminal/70 text-xs">
+            {isYtd
+              ? `Best: ${insights.longestStreak}`
+              : `Longest break: ${insights.longestBreak} days`}
           </div>
         </div>
 
@@ -79,10 +86,10 @@ export function InsightsPanel({
           <div className="text-terminal text-3xl font-bold">
             {insights.totalContributionDays}
           </div>
-          <div className="text-terminal/50 text-xs uppercase mt-1">
+          <div className="text-terminal/70 text-xs uppercase mt-1">
             Active Days
           </div>
-          <div className="text-terminal/30 text-xs">
+          <div className="text-terminal/70 text-xs">
             ~{insights.averagePerDay}/day
           </div>
         </div>
@@ -91,10 +98,10 @@ export function InsightsPanel({
           <div className="text-terminal text-3xl font-bold">
             {languageCount}
           </div>
-          <div className="text-terminal/50 text-xs uppercase mt-1">
+          <div className="text-terminal/70 text-xs uppercase mt-1">
             Languages
           </div>
-          <div className="text-terminal/30 text-xs">Used in 2025</div>
+          <div className="text-terminal/70 text-xs">Used in {year}</div>
         </div>
 
         <div className="p-3 bg-terminal-bg rounded border border-terminal/10">
@@ -107,37 +114,37 @@ export function InsightsPanel({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-3 bg-terminal-bg rounded border border-terminal/10">
-          <div className="text-terminal/50 text-xs uppercase mb-1">
+          <div className="text-terminal/70 text-xs uppercase mb-1">
             Peak Day
           </div>
           <div className="text-terminal text-xl font-bold">
             {formatPeakDate(insights.peakDay.date)}
           </div>
-          <div className="text-terminal/40 text-xs">
+          <div className="text-terminal/70 text-xs">
             {insights.peakDay.count} contributions
           </div>
         </div>
 
         <div className="p-3 bg-terminal-bg rounded border border-terminal/10">
-          <div className="text-terminal/50 text-xs uppercase mb-1">
+          <div className="text-terminal/70 text-xs uppercase mb-1">
             Most Active On
           </div>
           <div className="text-terminal text-xl font-bold">
             {insights.mostProductiveDay.day}s
           </div>
-          <div className="text-terminal/40 text-xs">
+          <div className="text-terminal/70 text-xs">
             {insights.mostProductiveDay.count} total
           </div>
         </div>
 
         <div className="p-3 bg-terminal-bg rounded border border-terminal/10">
-          <div className="text-terminal/50 text-xs uppercase mb-1">
+          <div className="text-terminal/70 text-xs uppercase mb-1">
             Top Month
           </div>
           <div className="text-terminal text-xl font-bold">
             {insights.busiestMonth.month}
           </div>
-          <div className="text-terminal/40 text-xs">
+          <div className="text-terminal/70 text-xs">
             {insights.busiestMonth.count} contributions
           </div>
         </div>

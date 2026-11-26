@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 
 interface ActivityCalendarProps {
   calendar: { date: string; count: number; weekday: number }[];
+  year: number;
 }
 
 const MONTH_LABELS = [
@@ -28,7 +29,7 @@ function getColorForCount(count: number): string {
   return "#ffb000";
 }
 
-export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
+export function ActivityCalendar({ calendar, year }: ActivityCalendarProps) {
   const [hoveredDay, setHoveredDay] = useState<{
     date: string;
     count: number;
@@ -44,8 +45,8 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
     const weeks: { date: string; count: number; weekday: number }[][] = [];
     let currentWeek: typeof sorted = [];
 
-    const firstDate = new Date(sorted[0].date);
-    const startDayOfWeek = firstDate.getDay();
+    // Use the weekday GitHub reports: parsing the date locally can shift it.
+    const startDayOfWeek = sorted[0].weekday;
     for (let i = 0; i < startDayOfWeek; i++) {
       currentWeek.push({ date: "", count: -1, weekday: i });
     }
@@ -66,8 +67,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
     weeks.forEach((week, weekIndex) => {
       const validDay = week.find((d) => d.date && d.count >= 0);
       if (validDay) {
-        const date = new Date(validDay.date);
-        const month = date.getMonth();
+        const month = Number(validDay.date.slice(5, 7)) - 1;
         if (month !== lastMonth) {
           monthLabels.push({ month: MONTH_LABELS[month], weekIndex });
           lastMonth = month;
@@ -88,7 +88,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
   return (
     <div className="w-full bg-terminal-bg rounded-lg border border-terminal/20 p-4 overflow-x-auto">
       <div className="text-terminal/60 text-xs uppercase tracking-wider mb-4">
-        Activity Calendar · 2025
+        Activity calendar · {year}
       </div>
       <div className="relative" style={{ minWidth: width }}>
         <svg width={width} height={height}>
@@ -98,7 +98,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
               x={30 + weekIndex * (cellSize + cellGap)}
               y={12}
               fontSize={10}
-              fill="#ffb00060"
+              fill="#ffb000b3"
             >
               {month}
             </text>
@@ -110,7 +110,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
               x={0}
               y={30 + i * (cellSize + cellGap) + cellSize - 2}
               fontSize={9}
-              fill="#ffb00040"
+              fill="#ffb000b3"
             >
               {day}
             </text>
@@ -160,7 +160,7 @@ export function ActivityCalendar({ calendar }: ActivityCalendarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2 mt-4 text-xs text-terminal/40">
+      <div className="flex items-center gap-2 mt-4 text-xs text-terminal/70">
         <span>Less</span>
         {[0, 3, 6, 9, 12].map((count) => (
           <div

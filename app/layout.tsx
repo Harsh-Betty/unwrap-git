@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
-import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -10,16 +11,50 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Unwrap Git | Visualize Your Year in Code",
-  description:
-    "Transform your GitHub contributions into stunning 3D visualizations. Unwrap your coding year with beautiful terrain maps, commit analytics, and shareable wrapped summaries.",
-  keywords: ["GitHub", "Wrapped", "contributions", "developer", "stats"],
-  openGraph: {
-    title: "Unwrap Git",
-    description:
-      "Transform your GitHub contributions into stunning 3D visualizations. Unwrap your coding year with beautiful terrain maps, commit analytics, and shareable wrapped summaries.",
-    type: "website",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME}: GitHub Wrapped for any year`,
+    template: `%s | ${SITE_NAME}`,
   },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "GitHub Wrapped",
+    "GitHub year in review",
+    "GitHub stats",
+    "GitHub contributions",
+    "developer year in review",
+    "coding stats",
+    "commit history",
+    "GitHub leaderboard",
+  ],
+  authors: [{ name: "Harshvardhan Singh", url: "https://github.com/Harsh-Betty" }],
+  creator: "Harshvardhan Singh",
+  category: "technology",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME}: GitHub Wrapped for any year`,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME}: GitHub Wrapped for any year`,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0806",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

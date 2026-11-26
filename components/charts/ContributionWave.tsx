@@ -2,16 +2,17 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 interface ContributionWaveProps {
-  data: { week: number; count: number }[];
+  data: { week: number; start: string; count: number }[];
+  year: number;
 }
 
-export function ContributionWave({ data }: ContributionWaveProps) {
+export function ContributionWave({ data, year }: ContributionWaveProps) {
   if (!data || data.length === 0) return null;
 
   return (
     <div className="w-full h-48 bg-terminal-bg rounded-lg border border-terminal/20 p-4">
       <div className="text-terminal/60 text-xs uppercase tracking-wider mb-2">
-        Contribution Wave · 2025
+        Contributions per week · {year}
       </div>
       <ResponsiveContainer width="100%" height="85%">
         <AreaChart
@@ -35,7 +36,7 @@ export function ContributionWave({ data }: ContributionWaveProps) {
             dataKey="week"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#ffb00050", fontSize: 10 }}
+            tick={{ fill: "#ffb000b3", fontSize: 10 }}
             tickFormatter={(week) => (week % 4 === 0 ? `W${week}` : "")}
           />
           <Tooltip
@@ -47,7 +48,7 @@ export function ContributionWave({ data }: ContributionWaveProps) {
               fontSize: "12px",
             }}
             labelFormatter={(week) => `Week ${week}`}
-            formatter={(value?: number) => [`${value} contributions`, ""]}
+            formatter={(value) => [`${value} contributions`, ""]}
           />
           <Area
             type="monotone"

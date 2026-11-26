@@ -7,6 +7,8 @@ story or download it as a card.
 
 **[unwrap-git.hrshvrdhn.com](https://unwrap-git.hrshvrdhn.com)**
 
+![The Unwrap Git page for @Harsh-Betty in 2025: longest streak, active days, languages, peak day, most active weekday, top month and coding badges](docs/screenshot.png)
+
 ## Features
 
 - **Any year since 2008.** Past years cover January 1 to December 31 (UTC); the

@@ -118,7 +118,7 @@ const STATS_QUERY = `
           pullRequest {
             title
             url
-            repository { nameWithOwner }
+            repository { nameWithOwner isPrivate }
           }
         }
       }
@@ -130,6 +130,7 @@ const STATS_QUERY = `
         orderBy: { field: STARGAZERS, direction: DESC }
         ownerAffiliations: OWNER
         isFork: false
+        privacy: PUBLIC
       ) {
         nodes {
           name
@@ -207,7 +208,7 @@ interface StatsQueryResponse {
         pullRequest: {
           title: string;
           url: string;
-          repository: { nameWithOwner: string };
+          repository: { nameWithOwner: string; isPrivate: boolean };
         };
       } | null;
     };
@@ -323,6 +324,36 @@ const FALLBACK_LANGUAGE_COLOR = "#ffb000";
 type Collection = NonNullable<
   StatsQueryResponse["user"]
 >["contributionsCollection"];
+
+// Drops every private repository before anything is derived from the
+// collection. A token can see private repositories (the app token's owner's,
+// their organisations', or a signed-in user's own), and their names, counts,
+// languages and PR titles must never reach a page or the cache. Private work
+// still counts towards the totals, just without being attributed.
+function publicOnly(collection: Collection): Collection {
+  const visible = <T extends RepoContribution<RepoNode>>(list: T[]) =>
+    list.filter((entry) => !entry.repository.isPrivate);
+  return {
+    ...collection,
+    commitContributionsByRepository: visible(
+      collection.commitContributionsByRepository
+    ),
+    pullRequestContributionsByRepository: visible(
+      collection.pullRequestContributionsByRepository
+    ),
+    issueContributionsByRepository: visible(
+      collection.issueContributionsByRepository
+    ),
+    pullRequestReviewContributionsByRepository: visible(
+      collection.pullRequestReviewContributionsByRepository
+    ),
+    popularPullRequestContribution:
+      collection.popularPullRequestContribution?.pullRequest.repository
+        .isPrivate
+        ? null
+        : collection.popularPullRequestContribution,
+  };
+}
 
 function computeLanguages(
   repos: Collection["commitContributionsByRepository"]
@@ -613,7 +644,8 @@ export async function fetchUserStats({
     to: to.toISOString(),
     prevFrom: prevFrom.toISOString(),
     prevTo: prevTo.toISOString(),
-    mergedQuery: `author:${login} is:pr is:merged merged:${isoDay(from)}..${isoDay(to)}`,
+    // Public lookups count public PRs only: the app token may see private ones.
+    mergedQuery: `author:${login} is:pr is:merged${token ? "" : " is:public"} merged:${isoDay(from)}..${isoDay(to)}`,
   };
 
   const response = await client
@@ -633,7 +665,7 @@ export async function fetchUserStats({
 
   const { user } = response;
   if (!user) throw new GitHubUserNotFoundError(login);
-  const collection = user.contributionsCollection;
+  const collection = publicOnly(user.contributionsCollection);
 
   const calendar: CalendarDay[] = collection.contributionCalendar.weeks.flatMap(
     (week) =>
@@ -683,7 +715,7 @@ export async function fetchUserStats({
       repositories: collection.totalRepositoryContributions,
       restricted: collection.restrictedContributionsCount,
       mergedPullRequests: response.merged?.issueCount ?? null,
-      reposContributedTo: collection.totalRepositoriesWithContributedCommits,
+      reposContributedTo: collection.commitContributionsByRepository.length,
       previousYearTotal: user.previous.contributionCalendar.totalContributions,
     },
     calendar,

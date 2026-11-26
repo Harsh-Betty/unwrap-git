@@ -79,7 +79,7 @@ async function ownToken(requestHeaders: Headers): Promise<string | undefined> {
 function cacheKey(login: string, year: number, scope: "self" | "pub"): string {
   // "self" entries hold private contribution counts and are only ever read
   // back for that same signed-in user.
-  return `stats:v2:${login.toLowerCase()}:${year}:${scope}`;
+  return `stats:v3:${login.toLowerCase()}:${year}:${scope}`;
 }
 
 function fromCache(entry: CacheEntry): StatsResult {
